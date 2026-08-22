@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { STATIONS, type ProductSpecs, type Priority, type PurchaseOrder, type Station, type TraceabilityEvent, type WorkOrder } from '../types/order';
 import { mockDataService } from '../services/mockDataService';
 import { storageService } from '../services/storageService';
@@ -106,6 +106,23 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     const stored = storageService.get<PurchaseOrder[] | null>(PURCHASE_ORDERS_KEY, null);
     return isValidPurchaseOrders(stored) ? stored : mockDataService.getInitialPurchaseOrders();
   });
+
+  // Sincronización reactiva entre pestañas/ventanas: si otra pestaña (ej. un OPERATOR
+  // en el taller) avanza una OT, esta pestaña (ej. el ADMIN o un CLIENT) se entera al
+  // instante sin recargar — el evento `storage` solo llega a pestañas distintas de la
+  // que escribió, así que no compite con las actualizaciones locales normales.
+  useEffect(() => {
+    const unsubOrders = storageService.subscribe<WorkOrder[]>(ORDERS_KEY, (value) => {
+      if (isValidOrders(value)) setOrders(value);
+    });
+    const unsubPos = storageService.subscribe<PurchaseOrder[]>(PURCHASE_ORDERS_KEY, (value) => {
+      if (isValidPurchaseOrders(value)) setPurchaseOrders(value);
+    });
+    return () => {
+      unsubOrders();
+      unsubPos();
+    };
+  }, []);
 
   const persistOrders = (next: WorkOrder[]) => {
     storageService.set(ORDERS_KEY, next);

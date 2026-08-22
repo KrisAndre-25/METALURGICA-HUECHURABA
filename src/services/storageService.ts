@@ -42,4 +42,25 @@ export const storageService = {
       // noop: entorno sin storage disponible
     }
   },
+
+  /**
+   * Sincronización reactiva entre pestañas/ventanas: el evento `storage` del navegador
+   * solo se dispara en pestañas DISTINTAS a la que escribió el valor (la propia pestaña
+   * ya se actualiza vía React state). Útil para que, por ejemplo, un OPERATOR avanzando
+   * una OT en una pestaña se refleje de inmediato en el dashboard de un ADMIN abierto en otra.
+   * Devuelve una función para des-suscribirse.
+   */
+  subscribe<T>(name: string, onChange: (value: T | null) => void): () => void {
+    const fullKey = key(name);
+    const handler = (e: StorageEvent) => {
+      if (e.key !== fullKey) return;
+      try {
+        onChange(e.newValue ? (JSON.parse(e.newValue) as T) : null);
+      } catch {
+        onChange(null);
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  },
 };

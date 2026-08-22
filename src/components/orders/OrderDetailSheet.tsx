@@ -11,16 +11,15 @@ import { OrderPriorityBadge } from './OrderPriorityBadge';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrders } from '../../hooks/useOrders';
 import { useToast } from '../ui/Toast';
-import { mockDataService } from '../../services/mockDataService';
-
-const OPERATOR_NAMES = mockDataService.getUsers().filter((u) => u.role === 'OPERATOR' && u.active).map((u) => u.name);
 
 export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; onClose: () => void }) {
-  const { user } = useAuth();
+  const { user, users } = useAuth();
   const { advanceStation, addNote, reassignOperator } = useOrders();
   const { showToast } = useToast();
   const [note, setNote] = useState('');
   const [reassignTo, setReassignTo] = useState('');
+
+  const operatorNames = users.filter((u) => u.role === 'OPERATOR' && u.active).map((u) => u.name);
 
   const canOperate = user?.role === 'ADMIN' || user?.role === 'OPERATOR';
   const isLastStation = order?.currentStation === STATIONS[STATIONS.length - 1];
@@ -92,7 +91,7 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
               <div className="flex-1">
                 <Select label="Reasignar operario" value={reassignTo} onChange={(e) => setReassignTo(e.target.value)}>
                   <option value="">Seleccionar…</option>
-                  {OPERATOR_NAMES.filter((n) => n !== order.assignedOperator).map((name) => (
+                  {operatorNames.filter((n) => n !== order.assignedOperator).map((name) => (
                     <option key={name} value={name}>{name}</option>
                   ))}
                 </Select>

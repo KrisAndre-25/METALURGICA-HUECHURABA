@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutDashboard, ListChecks, LogOut, RotateCcw, Search, User as UserIcon } from 'lucide-react';
+import { LayoutDashboard, ListChecks, LogOut, Pencil, RotateCcw, Search, User as UserIcon } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OrderProvider } from './contexts/OrderContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -12,11 +12,12 @@ import { OrderSpecsForm } from './components/orders/OrderSpecsForm';
 import { OrderCardTouch } from './components/orders/OrderCardTouch';
 import { OrderDetailSheet } from './components/orders/OrderDetailSheet';
 import { ClientTrackingCard } from './components/orders/ClientTrackingCard';
+import { EditProfileSheet } from './components/profile/EditProfileSheet';
+import { WorkerManagement } from './components/profile/WorkerManagement';
 import { Input } from './components/ui/Input';
 import { Button } from './components/ui/Button';
 import { Card } from './components/ui/Card';
 import { useOrders } from './hooks/useOrders';
-import { mockDataService } from './services/mockDataService';
 import { storageService } from './services/storageService';
 import { formatUF } from './utils/formatters';
 import type { WorkOrder } from './types/order';
@@ -111,6 +112,7 @@ function SearchView() {
 
 function ProfileView() {
   const { user, logout } = useAuth();
+  const [editOpen, setEditOpen] = useState(false);
   if (!user) return null;
 
   return (
@@ -119,31 +121,19 @@ function ProfileView() {
         <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-forge-accent/15 text-lg font-bold text-forge-accent">
           {user.name.charAt(0)}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{user.name}</p>
           <p className="text-xs text-forge-steel">{user.email}</p>
           <p className="text-xs text-forge-accent">{ROLE_LABEL[user.role] ?? user.role}</p>
         </div>
+        <Button variant="ghost" size="sm" icon={<Pencil className="size-3.5" />} onClick={() => setEditOpen(true)}>
+          Editar
+        </Button>
       </Card>
 
-      {user.role === 'ADMIN' && (
-        <Card>
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-forge-steel">Usuarios del sistema</h3>
-          <ul className="divide-y divide-forge-border/60">
-            {mockDataService.getUsers().map((u) => (
-              <li key={u.id} className="flex items-center justify-between py-2.5 text-sm">
-                <div>
-                  <p className="font-medium">{u.name}</p>
-                  <p className="text-xs text-forge-steel">{u.email}</p>
-                </div>
-                <span className={`text-xs ${u.active ? 'text-forge-ok' : 'text-forge-steel'}`}>
-                  {ROLE_LABEL[u.role] ?? u.role}{!u.active && ' · inactivo'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
+      {user.role === 'ADMIN' && <WorkerManagement />}
+
+      <EditProfileSheet open={editOpen} onClose={() => setEditOpen(false)} />
 
       <Button
         variant="outline"
@@ -198,21 +188,20 @@ function AuthenticatedApp() {
 
 function Gate() {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? (
-    <OrderProvider>
-      <AuthenticatedApp />
-    </OrderProvider>
-  ) : (
-    <Login />
-  );
+  return isAuthenticated ? <AuthenticatedApp /> : <Login />;
 }
 
 function App() {
   return (
     <AuthProvider>
-      <ToastProvider>
-        <Gate />
-      </ToastProvider>
+      {/* OrderProvider vive fuera del gate de auth: así el estado (y su listener
+          cross-tab) no se remonta en cada login/logout, y cambiar de perfil siempre
+          ve los datos más recientes sin depender de un refetch al iniciar sesión. */}
+      <OrderProvider>
+        <ToastProvider>
+          <Gate />
+        </ToastProvider>
+      </OrderProvider>
     </AuthProvider>
   );
 }
