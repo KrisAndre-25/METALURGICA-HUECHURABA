@@ -1,23 +1,41 @@
 import { useMemo } from 'react';
 import { useOrderContext } from '../contexts/OrderContext';
+import { useAuth } from '../contexts/AuthContext';
 import type { OrderStatus, Station } from '../types/order';
 
 interface UseOrdersFilters {
   status?: OrderStatus;
   station?: Station;
+  search?: string;
 }
 
-/** Lista de OTs con filtros opcionales por estado y estación, memoizada. */
+/**
+ * Lista de OTs con filtros opcionales, ya acotada por rol: un CLIENT solo ve
+ * las OTs de su propia empresa (`clientName`); ADMIN y OPERATOR ven todo.
+ */
 export function useOrders(filters: UseOrdersFilters = {}) {
-  const { orders, updateOrder, getOrderById } = useOrderContext();
+  const { user } = useAuth();
+  const { orders, updateOrder, getOrderById, advanceStation, addNote, reassignOperator, createOrder } = useOrderContext();
+
+  const scoped = useMemo(() => {
+    if (user?.role === 'CLIENT') {
+      return orders.filter((order) => order.clientName === user.clientName);
+    }
+    return orders;
+  }, [orders, user]);
 
   const filtered = useMemo(() => {
-    return orders.filter((order) => {
+    const search = filters.search?.trim().toLowerCase();
+    return scoped.filter((order) => {
       if (filters.status && order.status !== filters.status) return false;
       if (filters.station && order.currentStation !== filters.station) return false;
+      if (search) {
+        const haystack = `${order.id} ${order.projectName} ${order.clientName}`.toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
       return true;
     });
-  }, [orders, filters.status, filters.station]);
+  }, [scoped, filters.status, filters.station, filters.search]);
 
-  return { orders: filtered, allOrders: orders, updateOrder, getOrderById };
+  return { orders: filtered, allOrders: scoped, updateOrder, getOrderById, advanceStation, addNote, reassignOperator, createOrder };
 }

@@ -11,11 +11,12 @@ export const STATIONS = [
 
 export type Station = (typeof STATIONS)[number];
 
-export type OrderStatus = 'EN_TIEMPO' | 'EN_RIESGO' | 'ATRASADO' | 'DETENIDO';
+export type OrderStatus = 'EN_TIEMPO' | 'EN_RIESGO' | 'ATRASADO' | 'DETENIDO' | 'COMPLETADO';
 
-export type Priority = 'BAJA' | 'MEDIA' | 'ALTA' | 'URGENTE';
+export type Priority = 'BAJA' | 'NORMAL' | 'ALTA' | 'URGENTE';
 
-export type PurchaseOrderStatus = 'PENDIENTE' | 'APROBADA' | 'FACTURADA' | 'ANULADA';
+/** Estado comercial de la OC: dónde está en su ciclo de vida de negocio (no de taller). */
+export type PurchaseOrderStatus = 'RECIBIDA' | 'EN_PRODUCCION' | 'COMPLETADA';
 
 /** Orden de Compra (OC): el documento comercial que origina una o más OT. */
 export interface PurchaseOrder {
@@ -35,15 +36,16 @@ export interface ProductSpecs {
   paintSpecification: string;
 }
 
-/** Registro de paso de una OT por una estación, con tiempos reales vs. estimados. */
-export interface StationHistoryEntry {
+export type TraceabilityEventType = 'STATION_ENTER' | 'STATION_EXIT' | 'NOTE' | 'PRIORITY_CHANGE' | 'REASSIGNMENT' | 'HOLD' | 'RESUME';
+
+/** Evento de trazabilidad: cualquier hito relevante ocurrido sobre una OT, con quién y cuándo. */
+export interface TraceabilityEvent {
+  id: string;
+  type: TraceabilityEventType;
   station: Station;
-  enteredAt: string;
-  exitedAt: string | null;
-  estimatedHours: number;
-  actualHours: number | null;
-  responsible: string;
-  notes?: string;
+  timestamp: string;
+  actor: string;
+  note?: string;
 }
 
 /** Orden de Fabricación / Trabajo (OT): la unidad operativa que se sigue por planta. */
@@ -59,5 +61,7 @@ export interface WorkOrder {
   currentStation: Station;
   status: OrderStatus;
   progressPercentage: number;
-  history: StationHistoryEntry[];
+  assignedOperator: string;
+  lastMovementAt: string;
+  history: TraceabilityEvent[];
 }

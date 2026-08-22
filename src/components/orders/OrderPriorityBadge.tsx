@@ -3,7 +3,7 @@ import type { Priority } from '../../types/order';
 
 const TONE: Record<Priority, 'ok' | 'warn' | 'risk' | 'stopped'> = {
   BAJA: 'ok',
-  MEDIA: 'warn',
+  NORMAL: 'warn',
   ALTA: 'risk',
   URGENTE: 'stopped',
 };

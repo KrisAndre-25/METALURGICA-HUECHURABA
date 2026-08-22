@@ -29,6 +29,7 @@ const STATUS_LABELS: Record<string, string> = {
   EN_RIESGO: 'En riesgo',
   ATRASADO: 'Atrasado',
   DETENIDO: 'Detenido',
+  COMPLETADO: 'Completado',
 };
 
 export function formatStatus(status: string): string {
@@ -47,4 +48,30 @@ const STATION_LABELS: Record<string, string> = {
 
 export function formatStation(station: string): string {
   return STATION_LABELS[station] ?? station;
+}
+
+const EVENT_LABELS: Record<string, string> = {
+  STATION_ENTER: 'Ingresó a',
+  STATION_EXIT: 'Salió de',
+  NOTE: 'Nota en',
+  PRIORITY_CHANGE: 'Cambio de prioridad en',
+  REASSIGNMENT: 'Reasignación en',
+  HOLD: 'Detenida en',
+  RESUME: 'Reanudada en',
+};
+
+export function formatEventType(type: string): string {
+  return EVENT_LABELS[type] ?? type;
+}
+
+/** Tiempo relativo corto ("hace 5 min", "hace 3 h", "hace 2 d") para UI móvil compacta. */
+export function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const minutes = Math.round(diffMs / 60000);
+  if (minutes < 1) return 'recién';
+  if (minutes < 60) return `hace ${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `hace ${hours} h`;
+  const days = Math.round(hours / 24);
+  return `hace ${days} d`;
 }

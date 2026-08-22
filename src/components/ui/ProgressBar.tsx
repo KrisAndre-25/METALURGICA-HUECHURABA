@@ -5,6 +5,7 @@ const TONE_BAR: Record<string, string> = {
   EN_RIESGO: 'bg-forge-warn',
   ATRASADO: 'bg-forge-risk',
   DETENIDO: 'bg-forge-stopped',
+  COMPLETADO: 'bg-forge-ok',
 };
 
 export function ProgressBar({ percentage, status }: { percentage: number; status: string }) {

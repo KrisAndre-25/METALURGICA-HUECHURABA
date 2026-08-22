@@ -13,7 +13,11 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => storageService.get<User | null>('auth.user', null));
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = storageService.get<User | null>('auth.user', null);
+    // Revalida contra el catálogo actual: descarta sesiones cacheadas de un esquema de roles anterior.
+    return stored ? (mockUsers.find((u) => u.id === stored.id) ?? null) : null;
+  });
 
   const login = (email: string): boolean => {
     const found = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.active);

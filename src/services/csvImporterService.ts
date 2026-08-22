@@ -20,7 +20,7 @@ function parseCsv(raw: string): Record<string, string>[] {
   });
 }
 
-const VALID_PO_STATUS: PurchaseOrderStatus[] = ['PENDIENTE', 'APROBADA', 'FACTURADA', 'ANULADA'];
+const VALID_PO_STATUS: PurchaseOrderStatus[] = ['RECIBIDA', 'EN_PRODUCCION', 'COMPLETADA'];
 
 /**
  * Importa Órdenes de Compra desde un CSV con columnas:

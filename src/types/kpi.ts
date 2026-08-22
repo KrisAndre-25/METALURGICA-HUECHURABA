@@ -6,11 +6,11 @@ export interface StatusSummary {
   count: number;
 }
 
-/** Carga de trabajo (cantidad de OT) por estación, para el gráfico de cuellos de botella. */
+/** Carga de trabajo (cantidad de OT) por estación, para el pipeline horizontal. */
 export interface StationLoad {
   station: Station;
   orderCount: number;
-  averageHoursInStation: number;
+  averageLeadTimeHours: number;
 }
 
 /** Puntaje de salud operacional 0-100 de una OT individual, con el factor que más pesó. */
@@ -22,10 +22,23 @@ export interface HealthScore {
   mainRiskFactor: string | null;
 }
 
-/** KPIs globales de planta para el header del dashboard. */
+/** KPIs globales de planta: financieros (solo ADMIN) y operacionales. */
 export interface PlantKpis {
   totalActiveOrders: number;
-  onTimePercentage: number;
+  onTimeDeliveryPercentage: number;
   averageCycleTimeDays: number;
   stoppedOrders: number;
+  activeAmountUF: number;
+  plantHealthScore: number;
+}
+
+export type DiagnosticSeverity = 'info' | 'warning' | 'critical';
+
+/** Una recomendación en lenguaje natural generada por el motor de diagnóstico. */
+export interface DiagnosticInsight {
+  id: string;
+  severity: DiagnosticSeverity;
+  title: string;
+  message: string;
+  relatedOrderIds: string[];
 }
