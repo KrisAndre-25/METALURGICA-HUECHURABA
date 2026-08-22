@@ -4,6 +4,28 @@ import { mockUsers } from '../data/mockUsers';
 import { STATION_LIST, STATION_META } from '../data/mockStations';
 import type { PurchaseOrder, WorkOrder } from '../types/order';
 import type { User } from '../types/user';
+import type { ChatMessage } from '../types/chat';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const seedMessages: ChatMessage[] = [
+  {
+    id: 'msg-seed-1',
+    senderRole: 'OPERATOR',
+    senderName: 'Juan Carlos Soto',
+    text: 'OT-1042 lista para pintura, la dejo pasando por control visual antes de mandarla.',
+    timestamp: new Date(Date.now() - DAY_MS).toISOString(),
+    orderId: 'OT-1042',
+  },
+  {
+    id: 'msg-seed-2',
+    senderRole: 'ADMIN',
+    senderName: 'Sergio Núñez',
+    text: 'Perfecto, avísenme cuando salga de control de calidad para coordinar el despacho.',
+    timestamp: new Date(Date.now() - DAY_MS + 30 * 60 * 1000).toISOString(),
+    orderId: 'OT-1042',
+  },
+];
 
 /**
  * Única puerta de entrada a los datos semilla de la app. Los contexts NO deben
@@ -17,6 +39,9 @@ export const mockDataService = {
   },
   getInitialPurchaseOrders(): PurchaseOrder[] {
     return mockPurchaseOrders;
+  },
+  getInitialMessages(): ChatMessage[] {
+    return seedMessages;
   },
   getUsers(): User[] {
     return mockUsers;

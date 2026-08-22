@@ -64,6 +64,27 @@ export function formatEventType(type: string): string {
   return EVENT_LABELS[type] ?? type;
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Administrador',
+  OPERATOR: 'Taller/Oficina',
+  CLIENT: 'Cliente',
+};
+
+export function formatRole(role: string): string {
+  return ROLE_LABELS[role] ?? role;
+}
+
+/** Número de guía de despacho simulado — estable y determinístico a partir del ID de la OT. */
+export function formatDispatchGuide(orderId: string): string {
+  const digits = orderId.replace(/\D/g, '').padStart(4, '0');
+  return `GD-${new Date().getFullYear()}-${digits}`;
+}
+
+/** Fecha y hora completas (para timestamps de salida de taller, no solo fecha). */
+export function formatDateTime(iso: string): string {
+  return new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+}
+
 /** Tiempo relativo corto ("hace 5 min", "hace 3 h", "hace 2 d") para UI móvil compacta. */
 export function formatRelativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();

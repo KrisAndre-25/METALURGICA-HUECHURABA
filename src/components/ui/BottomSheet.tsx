@@ -29,7 +29,7 @@ export function BottomSheet({ open, onClose, title, subtitle, children, classNam
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center"
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

@@ -46,7 +46,7 @@ export function FastChecklist() {
     const nextStation = STATIONS[STATIONS.indexOf(order.currentStation) + 1];
 
     setTimeout(() => {
-      advanceStation(order.id, user.name);
+      advanceStation(order.id, user.name, user.role);
       showToast(
         isLast
           ? `${order.id} despachada — marcada como COMPLETADO.`

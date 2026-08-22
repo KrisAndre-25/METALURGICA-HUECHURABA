@@ -22,34 +22,43 @@ export function BatchUpdateSheet({ open, orderIds, onClose, onDone }: BatchUpdat
 
   const handleBatchAdvance = () => {
     if (!user) return;
-    orderIds.forEach((id) => advanceStation(id, user.name, note.trim() || undefined));
-    showToast(`${orderIds.length} OTs avanzaron, cada una a su siguiente estación.`);
+    orderIds.forEach((id) => advanceStation(id, user.name, user.role, note.trim() || undefined));
+    showToast(`${orderIds.join(', ')} avanzaron, cada una a su siguiente estación.`);
     setNote('');
     onDone();
   };
 
   const handleBatchNote = () => {
     if (!user || !note.trim()) return;
-    orderIds.forEach((id) => addNote(id, user.name, note.trim()));
-    showToast(`Nota agregada a ${orderIds.length} OTs.`);
+    orderIds.forEach((id) => addNote(id, user.name, user.role, note.trim()));
+    showToast(`Nota agregada a ${orderIds.join(', ')}.`);
     setNote('');
     onDone();
   };
 
   return (
     <BottomSheet open={open} onClose={onClose} title="Actualización en lote" subtitle={`${orderIds.length} OTs seleccionadas`}>
+      {/* Lista explícita de qué OTs recibirán la acción — nunca "a todas" a secas. */}
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {orderIds.map((id) => (
+          <span key={id} className="rounded-full border border-forge-border bg-forge-surface-2 px-2.5 py-1 text-xs font-medium text-forge-steel">
+            {id}
+          </span>
+        ))}
+      </div>
+
       <Textarea
-        label="Nota (ej: incidencia común a todas)"
+        label={`Nota para estas ${orderIds.length} OTs (ej: incidencia común)`}
         placeholder="Ej: cuadrilla reasignada por licencia médica…"
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
       <div className="mt-4 flex flex-col gap-2">
         <Button variant="secondary" size="lg" fullWidth onClick={handleBatchNote} disabled={!note.trim()}>
-          Solo agregar nota a todas
+          Agregar nota a {orderIds.length === 1 ? orderIds[0] : `estas ${orderIds.length} OTs`}
         </Button>
         <Button variant="primary" size="lg" fullWidth onClick={handleBatchAdvance}>
-          Avanzar las {orderIds.length} a la siguiente estación
+          Avanzar {orderIds.length === 1 ? orderIds[0] : `estas ${orderIds.length} OTs`} a la siguiente estación
         </Button>
       </div>
     </BottomSheet>

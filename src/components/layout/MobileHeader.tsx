@@ -1,7 +1,6 @@
 import { Factory } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-
-const ROLE_LABEL: Record<string, string> = { ADMIN: 'Administrador', OPERATOR: 'Taller/Oficina', CLIENT: 'Cliente' };
+import { formatRole } from '../../utils/formatters';
 
 export function MobileHeader({ title }: { title: string }) {
   const { user } = useAuth();
@@ -12,7 +11,7 @@ export function MobileHeader({ title }: { title: string }) {
         <Factory className="size-5 text-forge-accent" />
         <div>
           <p className="text-sm font-bold leading-tight">{title}</p>
-          {user && <p className="text-[10px] leading-tight text-forge-steel">{ROLE_LABEL[user.role] ?? user.role}</p>}
+          {user && <p className="text-[10px] leading-tight text-forge-steel">{formatRole(user.role)}</p>}
         </div>
       </div>
       {user && (

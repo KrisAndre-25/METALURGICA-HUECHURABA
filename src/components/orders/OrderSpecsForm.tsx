@@ -50,7 +50,7 @@ export function OrderSpecsForm() {
       },
       promisedDate: new Date(form.promisedDate).toISOString(),
       priority: form.priority,
-    }, user.name);
+    }, user.name, user.role);
 
     showToast(`${created.id} creada e ingresada a Orden de Compra.`);
     setForm(EMPTY_FORM);

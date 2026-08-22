@@ -45,6 +45,8 @@ export interface TraceabilityEvent {
   station: Station;
   timestamp: string;
   actor: string;
+  /** Rol de quien generó el evento, para mostrarlo junto al nombre en el historial. */
+  actorRole: import('./user').UserRole;
   note?: string;
 }
 

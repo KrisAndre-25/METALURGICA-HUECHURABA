@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { AlertOctagon, Banknote, Gauge, ListChecks, PackageCheck, Radio, Route, Truck } from 'lucide-react';
-import type { Station, WorkOrder } from '../../types/order';
+import type { Station } from '../../types/order';
 import { useOrders } from '../../hooks/useOrders';
 import { useDiagnosticEngine } from '../../hooks/useDiagnosticEngine';
 import { calculatePlantKpis, calculateStationLoad, summarizeByStatus } from '../../utils/kpiCalculators';
@@ -49,7 +49,9 @@ function SectionHeading({ icon: Icon, children, count }: { icon: typeof Truck; c
 export function ControlTower() {
   const { allOrders, purchaseOrders, shipments } = useOrders();
   const [activeStation, setActiveStation] = useState<Station | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<WorkOrder | null>(null);
+  // Solo el ID: el sheet siempre debe reflejar la OT viva, no una foto tomada al abrirlo.
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const selectedOrder = allOrders.find((o) => o.id === selectedOrderId) ?? null;
 
   const insights = useDiagnosticEngine(allOrders);
   const kpis = useMemo(() => calculatePlantKpis(allOrders, purchaseOrders), [allOrders, purchaseOrders]);
@@ -186,7 +188,7 @@ export function ControlTower() {
                 type="button"
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => setSelectedOrder(order)}
+                onClick={() => setSelectedOrderId(order.id)}
                 className="w-56 shrink-0 snap-start rounded-2xl border border-forge-border bg-gradient-to-b from-forge-surface-2 to-forge-surface p-3.5 text-left transition-colors hover:border-forge-accent/30"
               >
                 <div className="mb-2 flex items-center justify-between">
@@ -229,12 +231,12 @@ export function ControlTower() {
         </div>
         <div className="space-y-2.5">
           {visibleOrders.map((order) => (
-            <OrderCardTouch key={order.id} order={order} onOpen={setSelectedOrder} />
+            <OrderCardTouch key={order.id} order={order} onOpen={(o) => setSelectedOrderId(o.id)} />
           ))}
         </div>
       </Section>
 
-      <OrderDetailSheet order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+      <OrderDetailSheet order={selectedOrder} onClose={() => setSelectedOrderId(null)} />
     </motion.div>
   );
 }

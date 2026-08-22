@@ -15,7 +15,20 @@ interface UseOrdersFilters {
  */
 export function useOrders(filters: UseOrdersFilters = {}) {
   const { user } = useAuth();
-  const { orders, purchaseOrders, shipments, updateOrder, getOrderById, advanceStation, addNote, reassignOperator, createOrder, getClientProfile } = useOrderContext();
+  const {
+    orders,
+    purchaseOrders,
+    shipments,
+    messages,
+    updateOrder,
+    getOrderById,
+    advanceStation,
+    addNote,
+    reassignOperator,
+    createOrder,
+    getClientProfile,
+    sendMessage,
+  } = useOrderContext();
 
   const scoped = useMemo(() => {
     if (user?.role === 'CLIENT') {
@@ -42,6 +55,7 @@ export function useOrders(filters: UseOrdersFilters = {}) {
     allOrders: scoped,
     purchaseOrders,
     shipments,
+    messages,
     updateOrder,
     getOrderById,
     advanceStation,
@@ -49,5 +63,6 @@ export function useOrders(filters: UseOrdersFilters = {}) {
     reassignOperator,
     createOrder,
     getClientProfile,
+    sendMessage,
   };
 }

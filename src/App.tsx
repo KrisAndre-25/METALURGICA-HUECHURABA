@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutDashboard, ListChecks, LogOut, Pencil, RotateCcw, Search, User as UserIcon } from 'lucide-react';
+import { LayoutDashboard, ListChecks, LogOut, Pencil, RotateCcw, Search, Truck, User as UserIcon } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OrderProvider } from './contexts/OrderContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -12,6 +12,7 @@ import { OrderSpecsForm } from './components/orders/OrderSpecsForm';
 import { OrderCardTouch } from './components/orders/OrderCardTouch';
 import { OrderDetailSheet } from './components/orders/OrderDetailSheet';
 import { ClientTrackingCard } from './components/orders/ClientTrackingCard';
+import { DispatchCard } from './components/orders/DispatchCard';
 import { EditProfileSheet } from './components/profile/EditProfileSheet';
 import { WorkerManagement } from './components/profile/WorkerManagement';
 import { Input } from './components/ui/Input';
@@ -19,13 +20,17 @@ import { Button } from './components/ui/Button';
 import { Card } from './components/ui/Card';
 import { useOrders } from './hooks/useOrders';
 import { storageService } from './services/storageService';
-import { formatUF } from './utils/formatters';
-import type { WorkOrder } from './types/order';
+import { formatRole, formatUF } from './utils/formatters';
 
-type Tab = 'home' | 'checklist' | 'search' | 'profile';
+type Tab = 'home' | 'checklist' | 'search' | 'dispatch' | 'profile';
 
-const ROLE_LABEL: Record<string, string> = { ADMIN: 'Administrador', OPERATOR: 'Taller/Oficina', CLIENT: 'Cliente' };
-const TAB_TITLE: Record<Tab, string> = { home: 'ForgeFlow', checklist: 'Checklist Rápido', search: 'Buscar OTs', profile: 'Perfil' };
+const TAB_TITLE: Record<Tab, string> = {
+  home: 'ForgeFlow',
+  checklist: 'Checklist Rápido',
+  search: 'Buscar OTs',
+  dispatch: 'Mis Despachos y Entregas',
+  profile: 'Perfil',
+};
 
 function ClientHomeView() {
   const { user } = useAuth();
@@ -69,10 +74,29 @@ function ClientHomeView() {
   );
 }
 
+/** "Mis Despachos y Entregas": OTs del cliente que ya llegaron a Despacho o fueron entregadas. */
+function ClientDispatchView() {
+  const { allOrders } = useOrders();
+  const dispatches = allOrders.filter((o) => o.currentStation === 'DESPACHO' || o.status === 'COMPLETADO');
+
+  return (
+    <div className="space-y-3 pb-24">
+      {dispatches.length === 0 ? (
+        <p className="py-10 text-center text-sm text-forge-steel">Aún no tienes OTs en etapa de despacho.</p>
+      ) : (
+        dispatches.map((order) => <DispatchCard key={order.id} order={order} />)
+      )}
+    </div>
+  );
+}
+
 function HomeView() {
   const { user } = useAuth();
   const { orders } = useOrders();
-  const [selected, setSelected] = useState<WorkOrder | null>(null);
+  // Se guarda solo el ID y se busca la OT viva en cada render — si no, el sheet
+  // queda mostrando una foto congelada y una nota agregada sin cerrarlo no se ve.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = orders.find((o) => o.id === selectedId) ?? null;
 
   if (user?.role === 'ADMIN') return <ControlTower />;
   if (user?.role === 'CLIENT') return <ClientHomeView />;
@@ -85,27 +109,30 @@ function HomeView() {
       <div>
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-forge-steel">OTs activas ({active.length})</h2>
         <div className="space-y-2.5">
-          {active.slice(0, 6).map((order) => <OrderCardTouch key={order.id} order={order} onOpen={setSelected} />)}
+          {active.slice(0, 6).map((order) => <OrderCardTouch key={order.id} order={order} onOpen={(o) => setSelectedId(o.id)} />)}
         </div>
       </div>
-      <OrderDetailSheet order={selected} onClose={() => setSelected(null)} />
+      <OrderDetailSheet order={selected} onClose={() => setSelectedId(null)} />
     </div>
   );
 }
 
 function SearchView() {
   const [query, setQuery] = useState('');
-  const { orders } = useOrders({ search: query });
-  const [selected, setSelected] = useState<WorkOrder | null>(null);
+  const { orders, allOrders } = useOrders({ search: query });
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Deriva desde `allOrders` (sin filtro de búsqueda) para que el sheet no se
+  // cierre solo si el texto de búsqueda cambia mientras está abierto.
+  const selected = allOrders.find((o) => o.id === selectedId) ?? null;
 
   return (
     <div className="space-y-4 pb-24">
       <Input label="Buscar por OT, proyecto o cliente" placeholder="Ej: OT-1049, Silo, Andes…" value={query} onChange={(e) => setQuery(e.target.value)} />
       <div className="space-y-2.5">
-        {orders.map((order) => <OrderCardTouch key={order.id} order={order} onOpen={setSelected} />)}
+        {orders.map((order) => <OrderCardTouch key={order.id} order={order} onOpen={(o) => setSelectedId(o.id)} />)}
         {query && orders.length === 0 && <p className="py-8 text-center text-sm text-forge-steel">Sin resultados para "{query}".</p>}
       </div>
-      <OrderDetailSheet order={selected} onClose={() => setSelected(null)} />
+      <OrderDetailSheet order={selected} onClose={() => setSelectedId(null)} />
     </div>
   );
 }
@@ -124,7 +151,7 @@ function ProfileView() {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{user.name}</p>
           <p className="text-xs text-forge-steel">{user.email}</p>
-          <p className="text-xs text-forge-accent">{ROLE_LABEL[user.role] ?? user.role}</p>
+          <p className="text-xs text-forge-accent">{formatRole(user.role)}</p>
         </div>
         <Button variant="ghost" size="sm" icon={<Pencil className="size-3.5" />} onClick={() => setEditOpen(true)}>
           Editar
@@ -163,6 +190,7 @@ function AuthenticatedApp() {
     if (user?.role === 'CLIENT') {
       return [
         { id: 'home', label: 'Mis OTs', icon: LayoutDashboard },
+        { id: 'dispatch', label: 'Despachos', icon: Truck },
         { id: 'profile', label: 'Perfil', icon: UserIcon },
       ];
     }
@@ -181,6 +209,7 @@ function AuthenticatedApp() {
       {activeTab === 'home' && <HomeView />}
       {activeTab === 'checklist' && <FastChecklist />}
       {activeTab === 'search' && <SearchView />}
+      {activeTab === 'dispatch' && <ClientDispatchView />}
       {activeTab === 'profile' && <ProfileView />}
     </ProtectedLayout>
   );

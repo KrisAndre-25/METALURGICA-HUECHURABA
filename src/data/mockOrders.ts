@@ -1,4 +1,5 @@
 import { STATIONS, type OrderStatus, type Priority, type Station, type TraceabilityEvent, type WorkOrder } from '../types/order';
+import type { UserRole } from '../types/user';
 import { STATION_META } from './mockStations';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -19,6 +20,17 @@ const OPERATORS_BY_STATION: Record<Station, string> = {
   PINTURA: 'Fernanda Muñoz',
   CONTROL_CALIDAD: 'Rodrigo Álvarez',
   DESPACHO: 'Camila Torres',
+};
+
+/** Sergio Núñez es ADMIN; el resto del roster de estaciones son OPERATOR (ver mockUsers.ts). */
+const ROLE_BY_STATION: Record<Station, UserRole> = {
+  ORDEN_COMPRA: 'ADMIN',
+  COMPRA_INSUMOS: 'OPERATOR',
+  CORTE: 'OPERATOR',
+  ARMADO_SOLDADURA: 'OPERATOR',
+  PINTURA: 'OPERATOR',
+  CONTROL_CALIDAD: 'OPERATOR',
+  DESPACHO: 'OPERATOR',
 };
 
 type DelayProfile = 'ON_TIME' | 'AT_RISK' | 'LATE' | 'STOPPED' | 'DONE';
@@ -113,6 +125,7 @@ function buildHistory(seed: OrderSeed): { history: TraceabilityEvent[]; currentS
       station,
       timestamp: enterTimestamp,
       actor: OPERATORS_BY_STATION[station],
+      actorRole: ROLE_BY_STATION[station],
     });
     lastMovementAt = enterTimestamp;
 
@@ -124,6 +137,7 @@ function buildHistory(seed: OrderSeed): { history: TraceabilityEvent[]; currentS
         station,
         timestamp: noteTimestamp,
         actor: OPERATORS_BY_STATION[station],
+        actorRole: ROLE_BY_STATION[station],
         note: INCIDENT_NOTES[station],
       });
       lastMovementAt = noteTimestamp;
@@ -137,6 +151,7 @@ function buildHistory(seed: OrderSeed): { history: TraceabilityEvent[]; currentS
         station,
         timestamp: exitTimestamp,
         actor: OPERATORS_BY_STATION[station],
+        actorRole: ROLE_BY_STATION[station],
       });
       lastMovementAt = exitTimestamp;
       cursorDaysAgo = Math.max(cursorDaysAgo - (actualHours ?? meta.standardHours) / 24, 0);

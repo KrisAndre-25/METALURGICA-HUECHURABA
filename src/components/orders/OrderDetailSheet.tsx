@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ArrowRight, UserCog } from 'lucide-react';
 import type { WorkOrder } from '../../types/order';
 import { STATIONS } from '../../types/order';
-import { formatDate, formatEventType, formatRelativeTime, formatStation, formatTons } from '../../utils/formatters';
+import { formatDate, formatEventType, formatRelativeTime, formatRole, formatStation, formatTons } from '../../utils/formatters';
 import { BottomSheet } from '../ui/BottomSheet';
 import { Button } from '../ui/Button';
 import { Select, Textarea } from '../ui/Input';
@@ -27,7 +27,7 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
 
   const handleReassign = () => {
     if (!user || !order || !reassignTo) return;
-    reassignOperator(order.id, reassignTo, user.name);
+    reassignOperator(order.id, reassignTo, user.name, user.role);
     showToast(`${order.id} reasignada a ${reassignTo}.`);
     setReassignTo('');
   };
@@ -35,7 +35,7 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
   const handleAdvance = () => {
     if (!user || !order) return;
     const nextStation = STATIONS[STATIONS.indexOf(order.currentStation) + 1];
-    advanceStation(order.id, user.name, note.trim() || undefined);
+    advanceStation(order.id, user.name, user.role, note.trim() || undefined);
     showToast(
       isLastStation
         ? `${order.id} despachada — marcada como COMPLETADO.`
@@ -47,8 +47,9 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
 
   const handleAddNote = () => {
     if (!user || !order || !note.trim()) return;
-    addNote(order.id, user.name, note.trim());
-    showToast('Nota registrada.');
+    // `addNote` solo toca el historial de `order.id` dentro de OrderContext — nunca otra OT.
+    addNote(order.id, user.name, user.role, note.trim());
+    showToast(`Nota agregada a ${order.id}.`);
     setNote('');
   };
 
@@ -74,10 +75,15 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
 
           {canOperate && !isDone && (
             <div className="mb-5 space-y-2 rounded-xl border border-forge-border bg-forge-surface-2 p-3">
-              <Textarea label="Nota (opcional)" placeholder="Ej: esperando pintura epóxica del proveedor…" value={note} onChange={(e) => setNote(e.target.value)} />
+              <Textarea
+                label={`Agregar Nota a ${order.id}`}
+                placeholder="Ej: esperando pintura epóxica del proveedor…"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
               <div className="flex gap-2">
                 <Button variant="secondary" size="md" fullWidth onClick={handleAddNote} disabled={!note.trim()}>
-                  Solo guardar nota
+                  Guardar nota en {order.id}
                 </Button>
                 <Button variant="primary" size="md" fullWidth icon={<ArrowRight className="size-4" />} onClick={handleAdvance}>
                   {isLastStation ? 'Marcar despachada' : `A ${formatStation(STATIONS[STATIONS.indexOf(order.currentStation) + 1])}`}
@@ -102,13 +108,17 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
             </div>
           )}
 
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-forge-steel">Historial de trazabilidad</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-forge-steel">
+            Historial de trazabilidad de {order.id}
+          </h3>
           <ol className="space-y-3 border-l border-forge-border pl-4">
             {[...order.history].reverse().map((event) => (
               <li key={event.id} className="relative text-sm">
                 <span className="absolute -left-[21px] top-1 size-2.5 rounded-full bg-forge-accent" />
                 <p className="font-medium">{formatEventType(event.type)} {formatStation(event.station)}</p>
-                <p className="text-xs text-forge-steel">{event.actor} · {formatRelativeTime(event.timestamp)}</p>
+                <p className="text-xs text-forge-steel">
+                  {event.actor} <span className="text-forge-steel/70">· {formatRole(event.actorRole)}</span> · {formatRelativeTime(event.timestamp)}
+                </p>
                 {event.note && <p className="text-xs text-forge-warn">{event.note}</p>}
               </li>
             ))}
