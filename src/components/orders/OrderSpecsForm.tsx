@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { PackagePlus } from 'lucide-react';
 import type { Priority } from '../../types/order';
-import { mockPurchaseOrders } from '../../data/mockPurchaseOrders';
 import { Card, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { TouchInput, TouchSelect, TouchTextarea } from '../ui/TouchInput';
+import { Input, Select, Textarea } from '../ui/Input';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrders } from '../../hooks/useOrders';
 import { useToast } from '../ui/Toast';
@@ -22,11 +21,11 @@ const EMPTY_FORM = {
 
 export function OrderSpecsForm() {
   const { user } = useAuth();
-  const { createOrder } = useOrders();
+  const { createOrder, purchaseOrders } = useOrders();
   const { showToast } = useToast();
   const [form, setForm] = useState(EMPTY_FORM);
 
-  const openPurchaseOrders = mockPurchaseOrders.filter((oc) => oc.status !== 'COMPLETADA');
+  const openPurchaseOrders = purchaseOrders.filter((oc) => oc.status !== 'COMPLETADA');
   const selectedOc = openPurchaseOrders.find((oc) => oc.id === form.purchaseOrderId);
 
   const handleSubmit = (e: FormEvent) => {
@@ -61,7 +60,7 @@ export function OrderSpecsForm() {
     <Card>
       <CardTitle>Nueva OT desde una OC</CardTitle>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-        <TouchSelect
+        <Select
           label="Orden de Compra"
           value={form.purchaseOrderId}
           onChange={(e) => setForm((f) => ({ ...f, purchaseOrderId: e.target.value }))}
@@ -71,9 +70,9 @@ export function OrderSpecsForm() {
           {openPurchaseOrders.map((oc) => (
             <option key={oc.id} value={oc.id}>{oc.id} · {oc.clientName}</option>
           ))}
-        </TouchSelect>
+        </Select>
 
-        <TouchInput
+        <Input
           label="Nombre del proyecto"
           placeholder="Ej: Cercha Techumbre Bodega 6"
           value={form.projectName}
@@ -82,14 +81,14 @@ export function OrderSpecsForm() {
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <TouchInput
+          <Input
             label="Tipo de estructura"
             placeholder="Galpón, viga, cercha…"
             value={form.structureType}
             onChange={(e) => setForm((f) => ({ ...f, structureType: e.target.value }))}
             required
           />
-          <TouchInput
+          <Input
             label="Peso (ton)"
             type="number"
             step="0.1"
@@ -100,7 +99,7 @@ export function OrderSpecsForm() {
           />
         </div>
 
-        <TouchInput
+        <Input
           label="Dimensiones"
           placeholder="Ej: 20m x 12m x 4m"
           value={form.dimensions}
@@ -108,7 +107,7 @@ export function OrderSpecsForm() {
           required
         />
 
-        <TouchTextarea
+        <Textarea
           label="Especificación de pintura"
           placeholder="Ej: Anticorrosivo + esmalte RAL 7016"
           value={form.paintSpecification}
@@ -116,14 +115,14 @@ export function OrderSpecsForm() {
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <TouchInput
+          <Input
             label="Fecha comprometida"
             type="date"
             value={form.promisedDate}
             onChange={(e) => setForm((f) => ({ ...f, promisedDate: e.target.value }))}
             required
           />
-          <TouchSelect
+          <Select
             label="Prioridad"
             value={form.priority}
             onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as Priority }))}
@@ -132,7 +131,7 @@ export function OrderSpecsForm() {
             <option value="NORMAL">Normal</option>
             <option value="ALTA">Alta</option>
             <option value="URGENTE">Urgente</option>
-          </TouchSelect>
+          </Select>
         </div>
 
         <Button type="submit" fullWidth size="lg" icon={<PackagePlus className="size-5" />}>

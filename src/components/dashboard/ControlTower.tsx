@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AlertOctagon, Banknote, Gauge, PackageCheck } from 'lucide-react';
+import { AlertOctagon, Banknote, Gauge, PackageCheck, Truck } from 'lucide-react';
 import type { Station, WorkOrder } from '../../types/order';
 import { useOrders } from '../../hooks/useOrders';
 import { useDiagnosticEngine } from '../../hooks/useDiagnosticEngine';
-import { mockPurchaseOrders } from '../../data/mockPurchaseOrders';
 import { calculatePlantKpis, calculateStationLoad, summarizeByStatus } from '../../utils/kpiCalculators';
 import { formatStation, formatStatus, formatUF } from '../../utils/formatters';
 import { HealthScoreGauge } from './HealthScoreGauge';
@@ -23,12 +22,12 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function ControlTower() {
-  const { allOrders } = useOrders();
+  const { allOrders, purchaseOrders, shipments } = useOrders();
   const [activeStation, setActiveStation] = useState<Station | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<WorkOrder | null>(null);
 
   const insights = useDiagnosticEngine(allOrders);
-  const kpis = useMemo(() => calculatePlantKpis(allOrders, mockPurchaseOrders), [allOrders]);
+  const kpis = useMemo(() => calculatePlantKpis(allOrders, purchaseOrders), [allOrders, purchaseOrders]);
   const stationLoad = useMemo(() => calculateStationLoad(allOrders), [allOrders]);
   const statusSummary = useMemo(
     () => summarizeByStatus(allOrders.filter((o) => o.status !== 'COMPLETADO')),
@@ -105,6 +104,29 @@ export function ControlTower() {
             </ResponsiveContainer>
           </div>
         </Card>
+      </div>
+
+      <div>
+        <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-forge-steel">
+          <Truck className="size-3.5" /> Despachos ({shipments.length})
+        </h3>
+        <div className="-mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+          {shipments.slice(0, 8).map((order) => (
+            <button
+              key={order.id}
+              type="button"
+              onClick={() => setSelectedOrder(order)}
+              className="w-52 shrink-0 snap-start rounded-xl border border-forge-border bg-forge-surface-2 p-3 text-left"
+            >
+              <p className="truncate text-sm font-semibold">{order.projectName}</p>
+              <p className="text-xs text-forge-steel">{order.clientName}</p>
+              <p className={`mt-1.5 text-xs font-medium ${order.status === 'COMPLETADO' ? 'text-forge-ok' : 'text-forge-accent'}`}>
+                {order.status === 'COMPLETADO' ? 'Entregada' : 'En despacho'}
+              </p>
+            </button>
+          ))}
+          {shipments.length === 0 && <p className="py-3 text-xs text-forge-steel">Sin despachos activos.</p>}
+        </div>
       </div>
 
       <div>

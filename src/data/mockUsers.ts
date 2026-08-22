@@ -1,7 +1,7 @@
 import type { User } from '../types/user';
 
 export const mockUsers: User[] = [
-  { id: 'u-001', name: 'Sergio Contreras', email: 'sergio@metalurgicahuechuraba.cl', role: 'ADMIN', active: true },
+  { id: 'u-001', name: 'Sergio Núñez', email: 'sergio@metalurgicahuechuraba.cl', role: 'ADMIN', active: true },
   { id: 'u-002', name: 'Paulina Reyes', email: 'preyes@metalurgicahuechuraba.cl', role: 'OPERATOR', active: true },
   { id: 'u-003', name: 'Juan Carlos Soto', email: 'jsoto@metalurgicahuechuraba.cl', role: 'OPERATOR', station: 'CORTE', active: true },
   { id: 'u-004', name: 'Ignacio Peña', email: 'ipena@metalurgicahuechuraba.cl', role: 'OPERATOR', station: 'ARMADO_SOLDADURA', active: true },

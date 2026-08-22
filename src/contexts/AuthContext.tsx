@@ -1,7 +1,9 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { User } from '../types/user';
-import { mockUsers } from '../data/mockUsers';
+import { mockDataService } from '../services/mockDataService';
 import { storageService } from '../services/storageService';
+
+const users = mockDataService.getUsers();
 
 interface AuthContextValue {
   user: User | null;
@@ -16,11 +18,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const stored = storageService.get<User | null>('auth.user', null);
     // Revalida contra el catálogo actual: descarta sesiones cacheadas de un esquema de roles anterior.
-    return stored ? (mockUsers.find((u) => u.id === stored.id) ?? null) : null;
+    return stored ? (users.find((u) => u.id === stored.id) ?? null) : null;
   });
 
   const login = (email: string): boolean => {
-    const found = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.active);
+    const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.active);
     if (!found) return false;
     setUser(found);
     storageService.set('auth.user', found);

@@ -12,7 +12,7 @@ function daysFromNow(n: number): string {
 }
 
 const OPERATORS_BY_STATION: Record<Station, string> = {
-  ORDEN_COMPRA: 'Sergio Contreras',
+  ORDEN_COMPRA: 'Sergio Núñez',
   COMPRA_INSUMOS: 'Paulina Reyes',
   CORTE: 'Juan Carlos Soto',
   ARMADO_SOLDADURA: 'Ignacio Peña',

@@ -1,12 +1,17 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import { STATIONS, type ProductSpecs, type Priority, type Station, type TraceabilityEvent, type WorkOrder } from '../types/order';
-import { mockOrders } from '../data/mockOrders';
+import { STATIONS, type ProductSpecs, type Priority, type PurchaseOrder, type Station, type TraceabilityEvent, type WorkOrder } from '../types/order';
+import { mockDataService } from '../services/mockDataService';
 import { storageService } from '../services/storageService';
 
-const STORAGE_KEY = 'orders.v2';
+const ORDERS_KEY = 'orders.v2';
+const PURCHASE_ORDERS_KEY = 'purchaseOrders.v1';
 
 function isValidOrders(value: unknown): value is WorkOrder[] {
   return Array.isArray(value) && value.every((o) => typeof o === 'object' && o !== null && 'history' in o && Array.isArray((o as WorkOrder).history));
+}
+
+function isValidPurchaseOrders(value: unknown): value is PurchaseOrder[] {
+  return Array.isArray(value) && value.every((o) => typeof o === 'object' && o !== null && 'clientRut' in o);
 }
 
 export interface NewOrderInput {
@@ -18,14 +23,28 @@ export interface NewOrderInput {
   priority: Priority;
 }
 
+export interface ClientProfile {
+  clientName: string;
+  clientRut: string;
+  purchaseOrders: PurchaseOrder[];
+  orders: WorkOrder[];
+  activeCount: number;
+  completedCount: number;
+  totalAmountUF: number;
+}
+
 interface OrderContextValue {
   orders: WorkOrder[];
+  purchaseOrders: PurchaseOrder[];
+  /** OTs en o después de Despacho: en tránsito (estación Despacho) o ya entregadas (COMPLETADO). */
+  shipments: WorkOrder[];
   updateOrder: (id: string, patch: Partial<WorkOrder>) => void;
   getOrderById: (id: string) => WorkOrder | undefined;
   advanceStation: (id: string, actor: string, note?: string) => void;
   addNote: (id: string, actor: string, note: string) => void;
   reassignOperator: (id: string, operator: string, actor: string) => void;
   createOrder: (input: NewOrderInput, actor: string) => WorkOrder;
+  getClientProfile: (clientName: string) => ClientProfile;
 }
 
 const OrderContext = createContext<OrderContextValue | null>(null);
@@ -35,56 +54,90 @@ function withEvent(order: WorkOrder, event: Omit<TraceabilityEvent, 'id'>): Work
   return { ...order, history: [...order.history, { ...event, id }], lastMovementAt: event.timestamp };
 }
 
+/**
+ * Cierra la OC cuando todas sus OT quedaron COMPLETADO: mantiene la OC en sincronía
+ * con el taller sin que nadie tenga que actualizarla a mano.
+ */
+function syncPurchaseOrderStatus(pos: PurchaseOrder[], orders: WorkOrder[], purchaseOrderId: string): PurchaseOrder[] {
+  const siblings = orders.filter((o) => o.purchaseOrderId === purchaseOrderId);
+  if (siblings.length === 0) return pos;
+  const allDone = siblings.every((o) => o.status === 'COMPLETADO');
+  return pos.map((po) => {
+    if (po.id !== purchaseOrderId) return po;
+    if (allDone && po.status !== 'COMPLETADA') return { ...po, status: 'COMPLETADA' };
+    if (!allDone && po.status === 'COMPLETADA') return { ...po, status: 'EN_PRODUCCION' };
+    return po;
+  });
+}
+
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<WorkOrder[]>(() => {
-    const stored = storageService.get<WorkOrder[] | null>(STORAGE_KEY, null);
-    return isValidOrders(stored) ? stored : mockOrders;
+    const stored = storageService.get<WorkOrder[] | null>(ORDERS_KEY, null);
+    return isValidOrders(stored) ? stored : mockDataService.getInitialOrders();
   });
 
-  const persist = (next: WorkOrder[]) => {
-    storageService.set(STORAGE_KEY, next);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => {
+    const stored = storageService.get<PurchaseOrder[] | null>(PURCHASE_ORDERS_KEY, null);
+    return isValidPurchaseOrders(stored) ? stored : mockDataService.getInitialPurchaseOrders();
+  });
+
+  const persistOrders = (next: WorkOrder[]) => {
+    storageService.set(ORDERS_KEY, next);
+    return next;
+  };
+
+  const persistPurchaseOrders = (next: PurchaseOrder[]) => {
+    storageService.set(PURCHASE_ORDERS_KEY, next);
     return next;
   };
 
   const updateOrder = (id: string, patch: Partial<WorkOrder>) => {
-    setOrders((prev) => persist(prev.map((order) => (order.id === id ? { ...order, ...patch } : order))));
+    setOrders((prev) => persistOrders(prev.map((order) => (order.id === id ? { ...order, ...patch } : order))));
   };
 
   const getOrderById = (id: string) => orders.find((order) => order.id === id);
 
   /** Avanza la OT a la siguiente estación del pipeline, o la marca COMPLETADO si sale de Despacho. */
   const advanceStation = (id: string, actor: string, note?: string) => {
-    setOrders((prev) => persist(prev.map((order) => {
-      if (order.id !== id) return order;
-      const now = new Date().toISOString();
-      const currentIndex = STATIONS.indexOf(order.currentStation);
-      let next = withEvent(order, { type: 'STATION_EXIT', station: order.currentStation, timestamp: now, actor, note });
+    setOrders((prev) => {
+      const next = persistOrders(prev.map((order) => {
+        if (order.id !== id) return order;
+        const now = new Date().toISOString();
+        const currentIndex = STATIONS.indexOf(order.currentStation);
+        let updated = withEvent(order, { type: 'STATION_EXIT', station: order.currentStation, timestamp: now, actor, note });
 
-      if (currentIndex >= STATIONS.length - 1) {
-        return { ...next, status: 'COMPLETADO', progressPercentage: 100 };
+        if (currentIndex >= STATIONS.length - 1) {
+          return { ...updated, status: 'COMPLETADO', progressPercentage: 100 };
+        }
+
+        const nextStation: Station = STATIONS[currentIndex + 1];
+        updated = withEvent(updated, { type: 'STATION_ENTER', station: nextStation, timestamp: now, actor });
+        const progressPercentage = Math.min(Math.round(((currentIndex + 1) / STATIONS.length) * 100 + 5), 99);
+        return {
+          ...updated,
+          currentStation: nextStation,
+          status: updated.status === 'DETENIDO' ? 'EN_RIESGO' : updated.status,
+          progressPercentage,
+        };
+      }));
+
+      const changed = next.find((o) => o.id === id);
+      if (changed) {
+        setPurchaseOrders((prevPos) => persistPurchaseOrders(syncPurchaseOrderStatus(prevPos, next, changed.purchaseOrderId)));
       }
-
-      const nextStation: Station = STATIONS[currentIndex + 1];
-      next = withEvent(next, { type: 'STATION_ENTER', station: nextStation, timestamp: now, actor });
-      const progressPercentage = Math.min(Math.round(((currentIndex + 1) / STATIONS.length) * 100 + 5), 99);
-      return {
-        ...next,
-        currentStation: nextStation,
-        status: next.status === 'DETENIDO' ? 'EN_RIESGO' : next.status,
-        progressPercentage,
-      };
-    })));
+      return next;
+    });
   };
 
   const addNote = (id: string, actor: string, note: string) => {
-    setOrders((prev) => persist(prev.map((order) => {
+    setOrders((prev) => persistOrders(prev.map((order) => {
       if (order.id !== id) return order;
       return withEvent(order, { type: 'NOTE', station: order.currentStation, timestamp: new Date().toISOString(), actor, note });
     })));
   };
 
   const reassignOperator = (id: string, operator: string, actor: string) => {
-    setOrders((prev) => persist(prev.map((order) => {
+    setOrders((prev) => persistOrders(prev.map((order) => {
       if (order.id !== id) return order;
       const withEv = withEvent(order, {
         type: 'REASSIGNMENT',
@@ -116,13 +169,46 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       lastMovementAt: now,
       history: [{ id: `${sequence}-ev-1`, type: 'STATION_ENTER', station: 'ORDEN_COMPRA', timestamp: now, actor }],
     };
-    setOrders((prev) => persist([newOrder, ...prev]));
+    setOrders((prev) => persistOrders([newOrder, ...prev]));
+    setPurchaseOrders((prev) => persistPurchaseOrders(prev.map((po) =>
+      po.id === input.purchaseOrderId && po.status === 'RECIBIDA' ? { ...po, status: 'EN_PRODUCCION' } : po,
+    )));
     return newOrder;
   };
 
-  const value = useMemo<OrderContextValue>(
-    () => ({ orders, updateOrder, getOrderById, advanceStation, addNote, reassignOperator, createOrder }),
+  const getClientProfile = (clientName: string): ClientProfile => {
+    const clientPos = purchaseOrders.filter((po) => po.clientName === clientName);
+    const clientOrders = orders.filter((o) => o.clientName === clientName);
+    return {
+      clientName,
+      clientRut: clientPos[0]?.clientRut ?? '',
+      purchaseOrders: clientPos,
+      orders: clientOrders,
+      activeCount: clientOrders.filter((o) => o.status !== 'COMPLETADO').length,
+      completedCount: clientOrders.filter((o) => o.status === 'COMPLETADO').length,
+      totalAmountUF: clientPos.reduce((sum, po) => sum + po.totalAmountUF, 0),
+    };
+  };
+
+  const shipments = useMemo(
+    () => orders.filter((o) => o.currentStation === 'DESPACHO' || o.status === 'COMPLETADO'),
     [orders],
+  );
+
+  const value = useMemo<OrderContextValue>(
+    () => ({
+      orders,
+      purchaseOrders,
+      shipments,
+      updateOrder,
+      getOrderById,
+      advanceStation,
+      addNote,
+      reassignOperator,
+      createOrder,
+      getClientProfile,
+    }),
+    [orders, purchaseOrders, shipments],
   );
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;
