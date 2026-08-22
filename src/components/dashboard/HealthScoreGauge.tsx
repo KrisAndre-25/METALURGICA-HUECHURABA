@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 
-const SIZE = 160;
-const STROKE = 14;
+const SIZE = 168;
+const STROKE = 12;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -27,8 +27,12 @@ export function HealthScoreGauge({ score }: { score: number }) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative" style={{ width: SIZE, height: SIZE }}>
-        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="-rotate-90">
+      <div className="relative flex items-center justify-center" style={{ width: SIZE, height: SIZE }}>
+        <div
+          className="absolute inset-2 rounded-full blur-2xl transition-colors duration-700"
+          style={{ backgroundColor: color, opacity: 0.18 }}
+        />
+        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="-rotate-90 drop-shadow-[0_0_18px_rgba(0,0,0,0.4)]">
           <circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} fill="none" stroke="var(--color-forge-border)" strokeWidth={STROKE} />
           <motion.circle
             cx={SIZE / 2}
@@ -46,18 +50,24 @@ export function HealthScoreGauge({ score }: { score: number }) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <motion.span
-            className="text-4xl font-bold"
+            className="text-[2.75rem] font-bold leading-none tracking-tight"
             style={{ color }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
           >
             {clamped}
           </motion.span>
-          <span className="text-xs text-forge-steel">/ 100</span>
+          <span className="mt-1 text-[10px] font-medium uppercase tracking-wider text-forge-steel">Health Score</span>
         </div>
       </div>
-      <p className="mt-3 text-sm font-medium" style={{ color }}>{labelFor(clamped)}</p>
+      <div className="mt-3 flex items-center gap-1.5">
+        <span className="relative flex size-1.5">
+          <span className="absolute inline-flex size-full animate-ping rounded-full opacity-60" style={{ backgroundColor: color }} />
+          <span className="relative inline-flex size-1.5 rounded-full" style={{ backgroundColor: color }} />
+        </span>
+        <p className="text-sm font-medium" style={{ color }}>{labelFor(clamped)}</p>
+      </div>
     </div>
   );
 }
