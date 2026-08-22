@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forge-bg: #0b0d10;
+  --color-forge-surface: #14171c;
+  --color-forge-surface-2: #1b1f26;
+  --color-forge-border: #262b33;
+  --color-forge-accent: #ff6b1a;
+  --color-forge-accent-dim: #b9490f;
+  --color-forge-steel: #8a94a3;
+  --color-forge-ok: #22c55e;
+  --color-forge-warn: #eab308;
+  --color-forge-risk: #f97316;
+  --color-forge-stopped: #ef4444;
+}
+
+body {
+  margin: 0;
+  @apply bg-forge-bg text-slate-100 antialiased;
+}
+
+#root {
+  min-height: 100svh;
+}
