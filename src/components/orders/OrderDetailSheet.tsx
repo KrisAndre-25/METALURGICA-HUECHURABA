@@ -5,15 +5,15 @@ import { STATIONS } from '../../types/order';
 import { formatDate, formatEventType, formatRelativeTime, formatStation, formatTons } from '../../utils/formatters';
 import { BottomSheet } from '../ui/BottomSheet';
 import { Button } from '../ui/Button';
-import { TouchSelect, TouchTextarea } from '../ui/TouchInput';
+import { Select, Textarea } from '../ui/Input';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { OrderPriorityBadge } from './OrderPriorityBadge';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrders } from '../../hooks/useOrders';
 import { useToast } from '../ui/Toast';
-import { mockUsers } from '../../data/mockUsers';
+import { mockDataService } from '../../services/mockDataService';
 
-const OPERATOR_NAMES = mockUsers.filter((u) => u.role === 'OPERATOR' && u.active).map((u) => u.name);
+const OPERATOR_NAMES = mockDataService.getUsers().filter((u) => u.role === 'OPERATOR' && u.active).map((u) => u.name);
 
 export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; onClose: () => void }) {
   const { user } = useAuth();
@@ -70,7 +70,7 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
 
           {canOperate && !isDone && (
             <div className="mb-5 space-y-2 rounded-xl border border-forge-border bg-forge-surface-2 p-3">
-              <TouchTextarea label="Nota (opcional)" placeholder="Ej: esperando pintura epóxica del proveedor…" value={note} onChange={(e) => setNote(e.target.value)} />
+              <Textarea label="Nota (opcional)" placeholder="Ej: esperando pintura epóxica del proveedor…" value={note} onChange={(e) => setNote(e.target.value)} />
               <div className="flex gap-2">
                 <Button variant="secondary" size="md" fullWidth onClick={handleAddNote} disabled={!note.trim()}>
                   Solo guardar nota
@@ -85,12 +85,12 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
           {user?.role === 'ADMIN' && !isDone && (
             <div className="mb-5 flex items-end gap-2 rounded-xl border border-forge-border bg-forge-surface-2 p-3">
               <div className="flex-1">
-                <TouchSelect label="Reasignar operario" value={reassignTo} onChange={(e) => setReassignTo(e.target.value)}>
+                <Select label="Reasignar operario" value={reassignTo} onChange={(e) => setReassignTo(e.target.value)}>
                   <option value="">Seleccionar…</option>
                   {OPERATOR_NAMES.filter((n) => n !== order.assignedOperator).map((name) => (
                     <option key={name} value={name}>{name}</option>
                   ))}
-                </TouchSelect>
+                </Select>
               </div>
               <Button variant="secondary" size="md" icon={<UserCog className="size-4" />} onClick={handleReassign} disabled={!reassignTo}>
                 Asignar

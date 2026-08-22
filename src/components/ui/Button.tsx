@@ -1,12 +1,15 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { motion, type HTMLMotionProps } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { cn } from './cn';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg' | 'xl';
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: 'bg-forge-accent text-white hover:opacity-90 active:opacity-80',
+  primary: 'bg-forge-accent text-white hover:bg-forge-accent/90',
   secondary: 'bg-forge-surface-2 text-slate-100 border border-forge-border hover:border-forge-accent/50',
+  outline: 'bg-transparent text-slate-100 border border-forge-border hover:bg-forge-surface-2',
   ghost: 'bg-transparent text-forge-steel hover:bg-forge-surface-2 hover:text-slate-100',
   danger: 'bg-forge-stopped/15 text-forge-stopped border border-forge-stopped/30 hover:bg-forge-stopped/25',
 };
@@ -18,20 +21,38 @@ const SIZE_CLASSES: Record<Size, string> = {
   xl: 'h-20 px-6 text-lg',
 };
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   variant?: Variant;
   size?: Size;
   icon?: ReactNode;
   fullWidth?: boolean;
+  loading?: boolean;
+  children?: ReactNode;
 }
 
-/** Botón táctil: alturas grandes por defecto (44px+) para uso cómodo con el dedo. */
-export function Button({ variant = 'primary', size = 'md', icon, fullWidth, className, children, ...props }: ButtonProps) {
+/** Botón táctil del design system: variantes, tamaños grandes (44px+) y microinteracciones. */
+export function Button({
+  variant = 'primary',
+  size = 'md',
+  icon,
+  fullWidth,
+  loading,
+  disabled,
+  className,
+  children,
+  ...props
+}: ButtonProps) {
   return (
-    <button
+    <motion.button
       type="button"
+      whileTap={{ scale: 0.97 }}
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.12 }}
+      disabled={disabled || loading}
+      aria-busy={loading}
       className={cn(
-        'inline-flex select-none items-center justify-center gap-2 rounded-xl font-semibold transition-colors active:scale-[0.98]',
+        'inline-flex select-none items-center justify-center gap-2 rounded-xl font-semibold outline-none transition-colors',
+        'focus-visible:ring-2 focus-visible:ring-forge-accent focus-visible:ring-offset-2 focus-visible:ring-offset-forge-bg',
         'disabled:cursor-not-allowed disabled:opacity-40',
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],
@@ -40,8 +61,8 @@ export function Button({ variant = 'primary', size = 'md', icon, fullWidth, clas
       )}
       {...props}
     >
-      {icon}
+      {loading ? <Loader2 className="size-4 animate-spin" /> : icon}
       {children}
-    </button>
+    </motion.button>
   );
 }

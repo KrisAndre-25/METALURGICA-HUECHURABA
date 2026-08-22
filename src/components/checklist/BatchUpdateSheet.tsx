@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BottomSheet } from '../ui/BottomSheet';
 import { Button } from '../ui/Button';
-import { TouchTextarea } from '../ui/TouchInput';
+import { Textarea } from '../ui/Input';
 import { useOrders } from '../../hooks/useOrders';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../ui/Toast';
@@ -38,7 +38,7 @@ export function BatchUpdateSheet({ open, orderIds, onClose, onDone }: BatchUpdat
 
   return (
     <BottomSheet open={open} onClose={onClose} title="Actualización en lote" subtitle={`${orderIds.length} OTs seleccionadas`}>
-      <TouchTextarea
+      <Textarea
         label="Nota (ej: incidencia común a todas)"
         placeholder="Ej: cuadrilla reasignada por licencia médica…"
         value={note}
