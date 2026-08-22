@@ -5,18 +5,19 @@ import { OrderProvider } from './contexts/OrderContext';
 import { ToastProvider } from './components/ui/Toast';
 import { ProtectedLayout } from './components/layout/ProtectedLayout';
 import type { NavTab } from './components/layout/BottomNavigation';
-import { LoginScreen } from './components/layout/LoginScreen';
+import { Login } from './pages/Login';
 import { ControlTower } from './components/dashboard/ControlTower';
 import { FastChecklist } from './components/checklist/FastChecklist';
 import { OrderSpecsForm } from './components/orders/OrderSpecsForm';
 import { OrderCardTouch } from './components/orders/OrderCardTouch';
 import { OrderDetailSheet } from './components/orders/OrderDetailSheet';
 import { ClientTrackingCard } from './components/orders/ClientTrackingCard';
-import { TouchInput } from './components/ui/TouchInput';
+import { Input } from './components/ui/Input';
 import { Button } from './components/ui/Button';
 import { Card } from './components/ui/Card';
 import { useOrders } from './hooks/useOrders';
-import { mockUsers } from './data/mockUsers';
+import { mockDataService } from './services/mockDataService';
+import { formatUF } from './utils/formatters';
 import type { WorkOrder } from './types/order';
 
 type Tab = 'home' | 'checklist' | 'search' | 'profile';
@@ -24,22 +25,55 @@ type Tab = 'home' | 'checklist' | 'search' | 'profile';
 const ROLE_LABEL: Record<string, string> = { ADMIN: 'Administrador', OPERATOR: 'Taller/Oficina', CLIENT: 'Cliente' };
 const TAB_TITLE: Record<Tab, string> = { home: 'ForgeFlow', checklist: 'Checklist Rápido', search: 'Buscar OTs', profile: 'Perfil' };
 
+function ClientHomeView() {
+  const { user } = useAuth();
+  const { getClientProfile } = useOrders();
+  if (!user?.clientName) return null;
+
+  const profile = getClientProfile(user.clientName);
+  const active = profile.orders.filter((o) => o.status !== 'COMPLETADO');
+  const completed = profile.orders.filter((o) => o.status === 'COMPLETADO');
+
+  return (
+    <div className="space-y-5 pb-24">
+      <Card className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold">{profile.clientName}</p>
+          <p className="text-xs text-forge-steel">{profile.clientRut}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-lg font-bold text-forge-accent">{formatUF(profile.totalAmountUF)}</p>
+          <p className="text-xs text-forge-steel">{profile.activeCount} en curso · {profile.completedCount} entregadas</p>
+        </div>
+      </Card>
+
+      <div>
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-forge-steel">En curso ({active.length})</h2>
+        <div className="space-y-3">
+          {active.length === 0 && <p className="py-6 text-center text-sm text-forge-steel">No tienes OTs en producción por ahora.</p>}
+          {active.map((order) => <ClientTrackingCard key={order.id} order={order} />)}
+        </div>
+      </div>
+
+      {completed.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-forge-steel">Entregadas ({completed.length})</h2>
+          <div className="space-y-3">
+            {completed.map((order) => <ClientTrackingCard key={order.id} order={order} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function HomeView() {
   const { user } = useAuth();
   const { orders } = useOrders();
   const [selected, setSelected] = useState<WorkOrder | null>(null);
 
   if (user?.role === 'ADMIN') return <ControlTower />;
-
-  if (user?.role === 'CLIENT') {
-    return (
-      <div className="space-y-3 pb-24">
-        <h2 className="text-sm font-semibold text-forge-steel">Tus órdenes de fabricación</h2>
-        {orders.length === 0 && <p className="py-10 text-center text-sm text-forge-steel">Aún no tienes OTs en producción.</p>}
-        {orders.map((order) => <ClientTrackingCard key={order.id} order={order} />)}
-      </div>
-    );
-  }
+  if (user?.role === 'CLIENT') return <ClientHomeView />;
 
   // OPERATOR
   const active = orders.filter((o) => o.status !== 'COMPLETADO');
@@ -64,7 +98,7 @@ function SearchView() {
 
   return (
     <div className="space-y-4 pb-24">
-      <TouchInput label="Buscar por OT, proyecto o cliente" placeholder="Ej: OT-1049, Silo, Andes…" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <Input label="Buscar por OT, proyecto o cliente" placeholder="Ej: OT-1049, Silo, Andes…" value={query} onChange={(e) => setQuery(e.target.value)} />
       <div className="space-y-2.5">
         {orders.map((order) => <OrderCardTouch key={order.id} order={order} onOpen={setSelected} />)}
         {query && orders.length === 0 && <p className="py-8 text-center text-sm text-forge-steel">Sin resultados para "{query}".</p>}
@@ -95,7 +129,7 @@ function ProfileView() {
         <Card>
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-forge-steel">Usuarios del sistema</h3>
           <ul className="divide-y divide-forge-border/60">
-            {mockUsers.map((u) => (
+            {mockDataService.getUsers().map((u) => (
               <li key={u.id} className="flex items-center justify-between py-2.5 text-sm">
                 <div>
                   <p className="font-medium">{u.name}</p>
@@ -155,7 +189,7 @@ function Gate() {
       <AuthenticatedApp />
     </OrderProvider>
   ) : (
-    <LoginScreen />
+    <Login />
   );
 }
 
