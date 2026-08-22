@@ -3,15 +3,41 @@ import { STATIONS, type ProductSpecs, type Priority, type PurchaseOrder, type St
 import { mockDataService } from '../services/mockDataService';
 import { storageService } from '../services/storageService';
 
-const ORDERS_KEY = 'orders.v2';
+const ORDERS_KEY = 'orders.v3';
 const PURCHASE_ORDERS_KEY = 'purchaseOrders.v1';
 
+const VALID_STATUSES = new Set(['EN_TIEMPO', 'EN_RIESGO', 'ATRASADO', 'DETENIDO', 'COMPLETADO']);
+const VALID_PRIORITIES = new Set(['BAJA', 'NORMAL', 'ALTA', 'URGENTE']);
+
+/**
+ * Valida la FORMA real de los datos, no solo que existan. `orders.v2` guardaba
+ * historial como `TraceabilityEvent[]` igual que ahora, pero antes de eso el
+ * historial tenía otra forma completamente distinta (`enteredAt`/`estimatedHours`,
+ * sin `type` ni `timestamp`) y los valores de `priority`/`status` eran otros
+ * (`MEDIA` en vez de `NORMAL`, sin `COMPLETADO`). Si algo no calza, se descarta
+ * TODO el caché y se recarga desde `mockDataService` en vez de arriesgar un
+ * render con datos a medio adaptar — eso es lo que deja la pantalla en negro.
+ */
 function isValidOrders(value: unknown): value is WorkOrder[] {
-  return Array.isArray(value) && value.every((o) => typeof o === 'object' && o !== null && 'history' in o && Array.isArray((o as WorkOrder).history));
+  if (!Array.isArray(value) || value.length === 0) return false;
+  return value.every((raw) => {
+    if (typeof raw !== 'object' || raw === null) return false;
+    const o = raw as Partial<WorkOrder>;
+    if (!VALID_STATUSES.has(o.status as string)) return false;
+    if (!VALID_PRIORITIES.has(o.priority as string)) return false;
+    if (!o.productSpecs || typeof o.productSpecs.weightTons !== 'number') return false;
+    if (!Array.isArray(o.history)) return false;
+    return o.history.every((e) => typeof e === 'object' && e !== null && 'type' in e && 'timestamp' in e && 'actor' in e);
+  });
 }
 
 function isValidPurchaseOrders(value: unknown): value is PurchaseOrder[] {
-  return Array.isArray(value) && value.every((o) => typeof o === 'object' && o !== null && 'clientRut' in o);
+  if (!Array.isArray(value) || value.length === 0) return false;
+  return value.every((raw) => {
+    if (typeof raw !== 'object' || raw === null) return false;
+    const po = raw as Partial<PurchaseOrder>;
+    return typeof po.clientRut === 'string' && typeof po.totalAmountUF === 'number' && typeof po.status === 'string';
+  });
 }
 
 export interface NewOrderInput {

@@ -23,7 +23,7 @@ export function BatchUpdateSheet({ open, orderIds, onClose, onDone }: BatchUpdat
   const handleBatchAdvance = () => {
     if (!user) return;
     orderIds.forEach((id) => advanceStation(id, user.name, note.trim() || undefined));
-    showToast(`${orderIds.length} OTs avanzaron de estación.`);
+    showToast(`${orderIds.length} OTs avanzaron, cada una a su siguiente estación.`);
     setNote('');
     onDone();
   };

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutDashboard, ListChecks, LogOut, Search, User as UserIcon } from 'lucide-react';
+import { LayoutDashboard, ListChecks, LogOut, RotateCcw, Search, User as UserIcon } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OrderProvider } from './contexts/OrderContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -17,6 +17,7 @@ import { Button } from './components/ui/Button';
 import { Card } from './components/ui/Card';
 import { useOrders } from './hooks/useOrders';
 import { mockDataService } from './services/mockDataService';
+import { storageService } from './services/storageService';
 import { formatUF } from './utils/formatters';
 import type { WorkOrder } from './types/order';
 
@@ -143,6 +144,19 @@ function ProfileView() {
           </ul>
         </Card>
       )}
+
+      <Button
+        variant="outline"
+        fullWidth
+        size="md"
+        icon={<RotateCcw className="size-4" />}
+        onClick={() => {
+          storageService.clearAll();
+          window.location.reload();
+        }}
+      >
+        Restablecer datos de demo
+      </Button>
 
       <Button variant="danger" fullWidth size="lg" icon={<LogOut className="size-4" />} onClick={logout}>
         Cerrar sesión

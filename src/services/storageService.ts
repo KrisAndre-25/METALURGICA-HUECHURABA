@@ -31,4 +31,15 @@ export const storageService = {
       // noop: entorno sin storage disponible
     }
   },
+
+  /** Borra todo lo persistido por la app (namespace `forgeflow:`), sin tocar otros datos del navegador. */
+  clearAll(): void {
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith(`${NAMESPACE}:`))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      // noop: entorno sin storage disponible
+    }
+  },
 };

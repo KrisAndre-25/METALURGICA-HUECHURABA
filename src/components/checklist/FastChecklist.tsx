@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../ui/Toast';
 import { Button } from '../ui/Button';
 import { formatStation } from '../../utils/formatters';
-import { STATIONS } from '../../types/order';
+import { STATIONS, type WorkOrder } from '../../types/order';
 import { BatchUpdateSheet } from './BatchUpdateSheet';
 
 export function FastChecklist() {
@@ -28,10 +28,16 @@ export function FastChecklist() {
     });
   };
 
-  const handleQuickAdvance = (id: string) => {
+  const handleQuickAdvance = (order: WorkOrder) => {
     if (!user) return;
-    advanceStation(id, user.name);
-    showToast(`${id} avanzó de estación.`);
+    const isLast = order.currentStation === STATIONS[STATIONS.length - 1];
+    const nextStation = STATIONS[STATIONS.indexOf(order.currentStation) + 1];
+    advanceStation(order.id, user.name);
+    showToast(
+      isLast
+        ? `${order.id} despachada — marcada como COMPLETADO.`
+        : `${order.id} avanzó de ${formatStation(order.currentStation)} a ${formatStation(nextStation)}.`,
+    );
   };
 
   return (
@@ -63,7 +69,7 @@ export function FastChecklist() {
               <p className="text-xs text-forge-steel">{order.id} · {formatStation(order.currentStation)}</p>
             </div>
 
-            <Button variant="primary" size="lg" icon={<ArrowRight className="size-5" />} onClick={() => handleQuickAdvance(order.id)}>
+            <Button variant="primary" size="lg" icon={<ArrowRight className="size-5" />} onClick={() => handleQuickAdvance(order)}>
               {isLast ? 'Despachar' : 'Avanzar'}
             </Button>
           </div>

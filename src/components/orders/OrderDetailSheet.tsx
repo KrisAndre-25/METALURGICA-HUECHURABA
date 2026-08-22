@@ -35,8 +35,13 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
 
   const handleAdvance = () => {
     if (!user || !order) return;
+    const nextStation = STATIONS[STATIONS.indexOf(order.currentStation) + 1];
     advanceStation(order.id, user.name, note.trim() || undefined);
-    showToast(isLastStation ? `${order.id} marcada como completada.` : `${order.id} avanzó a la siguiente estación.`);
+    showToast(
+      isLastStation
+        ? `${order.id} despachada — marcada como COMPLETADO.`
+        : `${order.id} avanzó de ${formatStation(order.currentStation)} a ${formatStation(nextStation)}.`,
+    );
     setNote('');
     onClose();
   };
