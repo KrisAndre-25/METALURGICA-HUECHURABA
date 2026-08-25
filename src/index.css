@@ -147,3 +147,61 @@ body {
   outline: 2px solid var(--color-forge-accent);
   outline-offset: 2px;
 }
+
+/* Loader "matrix" estilo Uiverse.io: 3 barras que se llenan en cascada.
+   Usa `currentColor` (no un hex fijo) para heredar el color de texto del
+   botón/contenedor donde se inserte — así el mismo CSS sirve para un
+   botón primary (texto blanco), uno secondary (texto claro) o el modo
+   alto contraste, sin variantes por color. El tamaño (ancho/alto/grosor
+   de barra) lo controlan los modificadores `--sm/--md/--lg` via
+   `background-size`, no un segundo set de gradientes. */
+.uiverse-loader {
+  display: inline-block;
+  flex-shrink: 0;
+  background:
+    linear-gradient(#0000 calc(1*100%/6), currentColor 0 calc(3*100%/6), #0000 0),
+    linear-gradient(#0000 calc(2*100%/6), currentColor 0 calc(4*100%/6), #0000 0),
+    linear-gradient(#0000 calc(3*100%/6), currentColor 0 calc(5*100%/6), #0000 0);
+  background-repeat: no-repeat;
+  animation: uiverse-matrix 1s infinite linear;
+}
+
+.uiverse-loader--sm {
+  width: 22px;
+  height: 20px;
+  background-size: 5px 400%;
+}
+
+.uiverse-loader--md {
+  width: 34px;
+  height: 30px;
+  background-size: 7px 400%;
+}
+
+.uiverse-loader--lg {
+  width: 45px;
+  height: 40px;
+  background-size: 10px 400%;
+}
+
+@keyframes uiverse-matrix {
+  0% {
+    background-position: 0% 100%, 50% 100%, 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%, 50% 0%, 100% 0%;
+  }
+}
+
+/* Alto contraste: amarillo neón en vez de heredar currentColor — un
+   loader blanco quedaría invisible sobre las superficies que ya
+   invertimos a blanco (ej. la tarjeta de Login, `bg-[#171717]` arriba). */
+.high-contrast .uiverse-loader {
+  color: #ffff00;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uiverse-loader {
+    animation-duration: 2.5s;
+  }
+}

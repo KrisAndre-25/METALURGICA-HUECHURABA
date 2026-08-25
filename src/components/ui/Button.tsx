@@ -1,7 +1,7 @@
 import { motion, type HTMLMotionProps } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from './cn';
+import { Loader } from './Loader';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg' | 'xl';
@@ -62,7 +62,7 @@ export function Button({
       )}
       {...props}
     >
-      {loading ? <Loader2 className="size-4 animate-spin" /> : icon}
+      {loading ? <Loader size="sm" /> : icon}
       {children}
     </motion.button>
   );

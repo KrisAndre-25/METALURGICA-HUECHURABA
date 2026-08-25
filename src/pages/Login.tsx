@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Factory, Handshake, Lock, Mail, ShieldCheck, Truck, Wrench } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/ui/Toast';
+import { Loader } from '../components/ui/Loader';
 import { useUiPrefs } from '../contexts/UiPrefsContext';
 import { cn } from '../components/ui/cn';
 import type { UserRole } from '../types/user';
@@ -190,8 +191,9 @@ export function Login() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="h-13 w-full rounded-2xl bg-forge-accent text-sm font-semibold text-white transition-all disabled:opacity-60"
+            className="flex h-13 w-full items-center justify-center gap-2.5 rounded-2xl bg-forge-accent text-sm font-semibold text-white transition-all disabled:opacity-60"
           >
+            {loading && <Loader size="sm" />}
             {loading ? t.login.submitLoading : t.login.submitIdle}
           </motion.button>
 
@@ -208,6 +210,10 @@ export function Login() {
           {t.login.demoNote}
         </p>
       </motion.div>
+
+      {/* Transición hacia el dashboard: cubre la pantalla mientras se resuelve
+          el login, en vez de dejar solo el spinner del botón como única señal. */}
+      {loading && <Loader fullScreen size="lg" label={t.login.submitLoading} />}
     </div>
   );
 }
