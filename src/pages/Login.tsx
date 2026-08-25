@@ -205,10 +205,6 @@ export function Login() {
             {t.login.forgotPassword}
           </button>
         </form>
-
-        <p className="mt-5 text-center text-[10px] text-neutral-600">
-          {t.login.demoNote}
-        </p>
       </motion.div>
 
       {/* Transición hacia el dashboard: cubre la pantalla mientras se resuelve
