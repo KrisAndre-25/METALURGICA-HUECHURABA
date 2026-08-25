@@ -27,7 +27,7 @@ export function Card({ children, className, noPadding, onClick, accent }: CardPr
     <div
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden rounded-xl border border-forge-border bg-forge-surface shadow-lg shadow-black/20',
+        'relative overflow-hidden rounded-xl border border-forge-border bg-forge-surface shadow-lg shadow-black/20 high-contrast:border-2',
         !noPadding && 'p-5',
         isInteractive && 'cursor-pointer transition-colors hover:border-forge-accent/40 active:scale-[0.99]',
         className,

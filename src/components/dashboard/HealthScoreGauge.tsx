@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
 
 const SIZE = 168;
 const STROKE = 12;
@@ -12,18 +13,19 @@ function colorFor(score: number): string {
   return '#ef4444';
 }
 
-function labelFor(score: number): string {
-  if (score >= 80) return 'Planta saludable';
-  if (score >= 60) return 'Requiere atención';
-  if (score >= 35) return 'Riesgo elevado';
-  return 'Crítico';
-}
-
 /** Anillo circular animado 0-100 que resume la salud operacional de la planta. */
 export function HealthScoreGauge({ score }: { score: number }) {
+  const { t } = useUiPrefs();
   const clamped = Math.max(0, Math.min(100, score));
   const color = colorFor(clamped);
   const offset = CIRCUMFERENCE * (1 - clamped / 100);
+
+  const labelFor = (s: number): string => {
+    if (s >= 80) return t.healthGauge.healthy;
+    if (s >= 60) return t.healthGauge.attention;
+    if (s >= 35) return t.healthGauge.highRisk;
+    return t.healthGauge.critical;
+  };
 
   return (
     <div className="flex flex-col items-center">
@@ -58,7 +60,7 @@ export function HealthScoreGauge({ score }: { score: number }) {
           >
             {clamped}
           </motion.span>
-          <span className="mt-1 text-[10px] font-medium uppercase tracking-wider text-forge-steel">Health Score</span>
+          <span className="mt-1 text-[10px] font-medium uppercase tracking-wider text-forge-steel">{t.healthGauge.label}</span>
         </div>
       </div>
       <div className="mt-3 flex items-center gap-1.5">

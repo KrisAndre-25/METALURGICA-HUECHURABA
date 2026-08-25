@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Check, CheckSquare, Layers, Square } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
 import { useToast } from '../ui/Toast';
 import { Button } from '../ui/Button';
 import { formatStation } from '../../utils/formatters';
@@ -15,6 +16,7 @@ export function FastChecklist() {
   const { user } = useAuth();
   const { orders, advanceStation } = useOrders();
   const { showToast } = useToast();
+  const { t, language } = useUiPrefs();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchOpen, setBatchOpen] = useState(false);
   const [advancingId, setAdvancingId] = useState<string | null>(null);
@@ -49,8 +51,8 @@ export function FastChecklist() {
       advanceStation(order.id, user.name, user.role);
       showToast(
         isLast
-          ? `${order.id} despachada — marcada como COMPLETADO.`
-          : `${order.id} avanzó de ${formatStation(order.currentStation)} a ${formatStation(nextStation)}.`,
+          ? t.checklist.toastDispatched(order.id)
+          : t.checklist.toastAdvanced(order.id, formatStation(order.currentStation, language), formatStation(nextStation, language)),
       );
       setAdvancingId(null);
     }, CONFIRM_DELAY_MS);
@@ -59,11 +61,11 @@ export function FastChecklist() {
   return (
     <div className="space-y-3 pb-24">
       {user?.station && (
-        <p className="text-xs text-forge-steel">Mostrando solo OTs en tu estación: {formatStation(user.station)}</p>
+        <p className="text-xs text-forge-steel">{t.checklist.onlyStation(formatStation(user.station, language))}</p>
       )}
 
       {active.length === 0 && (
-        <p className="py-10 text-center text-sm text-forge-steel">No hay OTs activas para revisar aquí.</p>
+        <p className="py-10 text-center text-sm text-forge-steel">{t.checklist.empty}</p>
       )}
 
       <AnimatePresence initial={false}>
@@ -84,7 +86,7 @@ export function FastChecklist() {
               <button
                 type="button"
                 onClick={() => toggleSelect(order.id)}
-                aria-label="Seleccionar para actualización en lote"
+                aria-label={t.checklist.selectForBatch}
                 className="shrink-0 p-1 text-forge-steel"
               >
                 {isSelected ? <CheckSquare className="size-5 text-forge-accent" /> : <Square className="size-5" />}
@@ -92,12 +94,12 @@ export function FastChecklist() {
 
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{order.projectName}</p>
-                <p className="text-xs text-forge-steel">{order.id} · {formatStation(order.currentStation)}</p>
+                <p className="text-xs text-forge-steel">{order.id} · {formatStation(order.currentStation, language)}</p>
               </div>
 
               {isAdvancing ? (
                 <span className="flex h-14 shrink-0 items-center gap-2 rounded-xl bg-forge-ok/15 px-5 text-base font-semibold text-forge-ok">
-                  <Check className="size-5" /> Avanzada
+                  <Check className="size-5" /> {t.checklist.advancing}
                 </span>
               ) : (
                 <Button
@@ -107,7 +109,7 @@ export function FastChecklist() {
                   onClick={() => handleQuickAdvance(order)}
                   disabled={advancingId !== null}
                 >
-                  {isLast ? 'Despachar' : 'Avanzar'}
+                  {isLast ? t.checklist.dispatchBtn : t.checklist.advance}
                 </Button>
               )}
             </motion.div>
@@ -118,7 +120,7 @@ export function FastChecklist() {
       {selected.size > 0 && (
         <div className="fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 sm:bottom-6">
           <Button size="lg" icon={<Layers className="size-5" />} onClick={() => setBatchOpen(true)} className="shadow-xl shadow-black/40">
-            Actualizar {selected.size} seleccionadas
+            {t.checklist.updateSelected(selected.size)}
           </Button>
         </div>
       )}

@@ -2,45 +2,48 @@ import { Download } from 'lucide-react';
 import { BottomSheet } from '../ui/BottomSheet';
 import { Button } from '../ui/Button';
 import type { WorkOrder } from '../../types/order';
+import type { Language } from '../../types/language';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
 import { formatDate, formatDateTime, formatDispatchGuide, formatTons } from '../../utils/formatters';
+import type { Strings } from '../../i18n/strings';
 
-function buildCertificateText(order: WorkOrder, exitTimestamp: string | null): string {
+function buildCertificateText(order: WorkOrder, exitTimestamp: string | null, t: Strings, language: Language): string {
+  const c = t.orders.conformity;
   return [
-    'FICHA DE CONFORMIDAD DE ENTREGA',
-    'Metalúrgica Huechuraba',
+    c.header,
+    c.company,
     '─'.repeat(40),
-    `Orden de Fabricación: ${order.id}`,
-    `Orden de Compra: ${order.purchaseOrderId}`,
-    `Guía de despacho: ${formatDispatchGuide(order.id)}`,
+    `${c.workOrder}: ${order.id}`,
+    `${c.purchaseOrder}: ${order.purchaseOrderId}`,
+    `${c.guide}: ${formatDispatchGuide(order.id)}`,
     '',
-    `Cliente: ${order.clientName}`,
-    `Proyecto: ${order.projectName}`,
+    `${c.client}: ${order.clientName}`,
+    `${c.project}: ${order.projectName}`,
     '',
-    'ESPECIFICACIONES',
-    `  Estructura: ${order.productSpecs.structureType}`,
-    `  Dimensiones: ${order.productSpecs.dimensions}`,
-    `  Peso: ${formatTons(order.productSpecs.weightTons)}`,
-    `  Pintura: ${order.productSpecs.paintSpecification}`,
+    c.specsHeader,
+    `  ${c.structure}: ${order.productSpecs.structureType}`,
+    `  ${c.dimensions}: ${order.productSpecs.dimensions}`,
+    `  ${c.weight}: ${formatTons(order.productSpecs.weightTons)}`,
+    `  ${c.paint}: ${order.productSpecs.paintSpecification}`,
     '',
-    `Fecha de pedido: ${formatDate(order.orderDate)}`,
-    `Fecha comprometida: ${formatDate(order.promisedDate)}`,
-    `Salida de taller: ${exitTimestamp ? formatDateTime(exitTimestamp) : 'Pendiente'}`,
+    `${c.orderDate}: ${formatDate(order.orderDate, language)}`,
+    `${c.promisedDate}: ${formatDate(order.promisedDate, language)}`,
+    `${c.exitDate}: ${exitTimestamp ? formatDateTime(exitTimestamp, language) : c.pending}`,
     '',
-    'Este documento certifica que la estructura fabricada bajo la presente',
-    'orden fue inspeccionada en Control de Calidad y despachada conforme',
-    'a las especificaciones acordadas.',
+    c.certifyText,
     '─'.repeat(40),
-    'Documento generado automáticamente — entorno de demostración.',
+    c.generatedNote,
   ].join('\n');
 }
 
 export function ConformityCertificateSheet({ order, onClose }: { order: WorkOrder | null; onClose: () => void }) {
+  const { t, language } = useUiPrefs();
   const exitEvent = order?.history.find((e) => e.station === 'DESPACHO' && e.type === 'STATION_EXIT');
   const exitTimestamp = exitEvent?.timestamp ?? null;
 
   const handleDownload = () => {
     if (!order) return;
-    const blob = new Blob([buildCertificateText(order, exitTimestamp)], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([buildCertificateText(order, exitTimestamp, t, language)], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -52,16 +55,16 @@ export function ConformityCertificateSheet({ order, onClose }: { order: WorkOrde
   };
 
   return (
-    <BottomSheet open={order !== null} onClose={onClose} title="Ficha de Conformidad" subtitle={order ? `${order.id} · ${order.projectName}` : undefined}>
+    <BottomSheet open={order !== null} onClose={onClose} title={t.orders.conformity.title} subtitle={order ? `${order.id} · ${order.projectName}` : undefined}>
       {order && (
         <>
           <div className="mb-4 rounded-xl border border-forge-border bg-forge-surface-2 p-4">
             <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-forge-steel">
-              {buildCertificateText(order, exitTimestamp)}
+              {buildCertificateText(order, exitTimestamp, t, language)}
             </pre>
           </div>
           <Button fullWidth size="lg" icon={<Download className="size-4" />} onClick={handleDownload}>
-            Descargar Ficha de Conformidad
+            {t.orders.conformity.download}
           </Button>
         </>
       )}

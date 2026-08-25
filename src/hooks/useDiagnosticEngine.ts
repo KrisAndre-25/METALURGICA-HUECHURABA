@@ -1,25 +1,29 @@
 import { useMemo } from 'react';
 import type { WorkOrder } from '../types/order';
 import type { DiagnosticInsight } from '../types/kpi';
+import type { Language } from '../types/language';
 import { calculateStationLoad } from '../utils/kpiCalculators';
 import { formatStation } from '../utils/formatters';
+import { STRINGS } from '../i18n/strings';
 
 /**
  * Motor de diagnóstico basado en reglas: analiza las OTs activas y genera
  * recomendaciones en lenguaje natural, priorizadas por severidad.
  */
-export function useDiagnosticEngine(orders: WorkOrder[]): DiagnosticInsight[] {
+export function useDiagnosticEngine(orders: WorkOrder[], language: Language = 'es'): DiagnosticInsight[] {
   return useMemo(() => {
+    const t = STRINGS[language].diagnostics;
     const active = orders.filter((o) => o.status !== 'COMPLETADO');
     const insights: DiagnosticInsight[] = [];
 
     const stopped = active.filter((o) => o.status === 'DETENIDO');
     if (stopped.length > 0) {
+      const names = stopped.map((o) => o.projectName).slice(0, 3).join(', ');
       insights.push({
         id: 'diag-stopped',
         severity: 'critical',
-        title: `${stopped.length} ${stopped.length === 1 ? 'OT detenida requiere' : 'OTs detenidas requieren'} atención inmediata`,
-        message: `${stopped.map((o) => o.projectName).slice(0, 3).join(', ')}${stopped.length > 3 ? ' y otras' : ''} ${stopped.length === 1 ? 'está bloqueada' : 'están bloqueadas'} por un impedimento operativo. Revisa la nota de la última estación antes de reasignar personal.`,
+        title: t.stoppedTitle(stopped.length),
+        message: t.stoppedMessage(names, stopped.length > 3, stopped.length > 1),
         relatedOrderIds: stopped.map((o) => o.id),
       });
     }
@@ -29,8 +33,8 @@ export function useDiagnosticEngine(orders: WorkOrder[]): DiagnosticInsight[] {
       insights.push({
         id: 'diag-late',
         severity: 'critical',
-        title: `${late.length} ${late.length === 1 ? 'OT con fecha comprometida vencida' : 'OTs con fecha comprometida vencida'}`,
-        message: `Contacta al cliente para renegociar plazo o prioriza recursos en ${late[0].projectName}${late.length > 1 ? ` y ${late.length - 1} más` : ''}.`,
+        title: t.lateTitle(late.length),
+        message: t.lateMessage(late[0].projectName, late.length - 1),
         relatedOrderIds: late.map((o) => o.id),
       });
     }
@@ -41,8 +45,8 @@ export function useDiagnosticEngine(orders: WorkOrder[]): DiagnosticInsight[] {
       insights.push({
         id: 'diag-bottleneck',
         severity: 'warning',
-        title: `Cuello de botella en ${formatStation(bottleneck.station)}`,
-        message: `Hay ${bottleneck.orderCount} OTs acumuladas en esta estación, con un lead time promedio de ${Math.round(bottleneck.averageLeadTimeHours)} h. Evalúa reforzar personal ahí.`,
+        title: t.bottleneckTitle(formatStation(bottleneck.station, language)),
+        message: t.bottleneckMessage(bottleneck.orderCount, Math.round(bottleneck.averageLeadTimeHours)),
         relatedOrderIds: active.filter((o) => o.currentStation === bottleneck.station).map((o) => o.id),
       });
     }
@@ -52,8 +56,8 @@ export function useDiagnosticEngine(orders: WorkOrder[]): DiagnosticInsight[] {
       insights.push({
         id: 'diag-at-risk',
         severity: 'warning',
-        title: `${atRisk.length} ${atRisk.length === 1 ? 'OT con margen ajustado' : 'OTs con margen ajustado'} a la fecha comprometida`,
-        message: `Sin holgura para nuevos imprevistos en ${atRisk[0].projectName}${atRisk.length > 1 ? ` y ${atRisk.length - 1} más` : ''}. Haz seguimiento diario.`,
+        title: t.atRiskTitle(atRisk.length),
+        message: t.atRiskMessage(atRisk[0].projectName, atRisk.length - 1),
         relatedOrderIds: atRisk.map((o) => o.id),
       });
     }
@@ -62,13 +66,13 @@ export function useDiagnosticEngine(orders: WorkOrder[]): DiagnosticInsight[] {
       insights.push({
         id: 'diag-all-good',
         severity: 'info',
-        title: 'Planta operando sin alertas críticas',
-        message: 'Todas las OTs activas están en tiempo o con margen saludable. Buen ritmo de producción.',
+        title: t.allGoodTitle,
+        message: t.allGoodMessage,
         relatedOrderIds: [],
       });
     }
 
     const order = { critical: 0, warning: 1, info: 2 };
     return insights.sort((a, b) => order[a.severity] - order[b.severity]);
-  }, [orders]);
+  }, [orders, language]);
 }

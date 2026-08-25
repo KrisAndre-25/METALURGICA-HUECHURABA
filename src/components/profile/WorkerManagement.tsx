@@ -6,6 +6,7 @@ import { Badge } from '../ui/Badge';
 import { BottomSheet } from '../ui/BottomSheet';
 import { Input, Select } from '../ui/Input';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
 import { useToast } from '../ui/Toast';
 import { mockDataService } from '../../services/mockDataService';
 import { formatStation } from '../../utils/formatters';
@@ -20,6 +21,7 @@ const EMPTY_FORM: WorkerInput = { name: '', rut: '', email: '', position: '', st
 export function WorkerManagement() {
   const { users, addWorker, updateWorker, toggleWorkerActive, deleteWorker } = useAuth();
   const { showToast } = useToast();
+  const { t, language } = useUiPrefs();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -28,6 +30,7 @@ export function WorkerManagement() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const workers = users.filter((u) => u.role === 'OPERATOR');
+  const wm = t.profile.workerManagement;
 
   const openCreate = () => {
     setEditingId(null);
@@ -46,31 +49,31 @@ export function WorkerManagement() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.rut.trim() || !form.email.trim() || !form.position.trim()) {
-      setError('Completa todos los campos obligatorios.');
+      setError(wm.errorRequired);
       return;
     }
     if (!/^\d{7,8}-[\dkK]$/.test(form.rut.trim())) {
-      setError('RUT inválido. Formato esperado: 12345678-9');
+      setError(wm.errorRut);
       return;
     }
 
     if (editingId) {
       updateWorker(editingId, form);
-      showToast(`${form.name} actualizado.`);
+      showToast(wm.toastUpdated(form.name));
     } else {
       const created = addWorker(form);
       if (!created) {
-        setError('No se pudo crear el trabajador.');
+        setError(wm.errorCreateFailed);
         return;
       }
-      showToast(`${created.name} agregado al equipo.`);
+      showToast(wm.toastCreated(created.name));
     }
     setFormOpen(false);
   };
 
   const handleToggleActive = (worker: User) => {
     toggleWorkerActive(worker.id);
-    showToast(worker.active ? `${worker.name} desactivado.` : `${worker.name} reactivado.`);
+    showToast(worker.active ? wm.toastDeactivated(worker.name) : wm.toastReactivated(worker.name));
   };
 
   const handleDelete = (worker: User) => {
@@ -80,15 +83,15 @@ export function WorkerManagement() {
     }
     const ok = deleteWorker(worker.id);
     setPendingDeleteId(null);
-    if (ok) showToast(`${worker.name} eliminado.`);
+    if (ok) showToast(wm.toastDeleted(worker.name));
   };
 
   return (
     <Card>
       <div className="mb-3 flex items-center justify-between">
-        <CardTitle>Trabajadores ({workers.length})</CardTitle>
+        <CardTitle>{wm.title(workers.length)}</CardTitle>
         <Button size="sm" icon={<UserPlus className="size-3.5" />} onClick={openCreate}>
-          Agregar
+          {wm.add}
         </Button>
       </div>
 
@@ -98,68 +101,68 @@ export function WorkerManagement() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="truncate text-sm font-medium">{worker.name}</p>
-                {!worker.active && <Badge tone="neutral">Inactivo</Badge>}
+                {!worker.active && <Badge tone="neutral">{wm.inactive}</Badge>}
               </div>
               <p className="truncate text-xs text-forge-steel">
-                {worker.position ?? 'Sin cargo'} {worker.station && `· ${formatStation(worker.station)}`}
+                {worker.position ?? wm.noPosition} {worker.station && `· ${formatStation(worker.station, language)}`}
               </p>
               <p className="truncate text-[11px] text-forge-steel">{worker.rut} · {worker.email}</p>
             </div>
             <div className="flex shrink-0 items-center gap-1">
-              <button type="button" onClick={() => openEdit(worker)} className="rounded-lg p-2 text-forge-steel hover:bg-forge-surface-2 hover:text-slate-100" aria-label="Editar">
+              <button type="button" onClick={() => openEdit(worker)} className="rounded-lg p-2 text-forge-steel hover:bg-forge-surface-2 hover:text-slate-100" aria-label={wm.edit}>
                 <Pencil className="size-4" />
               </button>
-              <button type="button" onClick={() => handleToggleActive(worker)} className="rounded-lg p-2 text-forge-steel hover:bg-forge-surface-2 hover:text-slate-100" aria-label="Activar/desactivar">
+              <button type="button" onClick={() => handleToggleActive(worker)} className="rounded-lg p-2 text-forge-steel hover:bg-forge-surface-2 hover:text-slate-100" aria-label={wm.toggleActive}>
                 <Power className="size-4" />
               </button>
               <button
                 type="button"
                 onClick={() => handleDelete(worker)}
                 className={`rounded-lg p-2 transition-colors ${pendingDeleteId === worker.id ? 'bg-forge-stopped/15 text-forge-stopped' : 'text-forge-steel hover:bg-forge-stopped/10 hover:text-forge-stopped'}`}
-                aria-label="Eliminar"
+                aria-label={wm.delete}
               >
                 <Trash2 className="size-4" />
               </button>
             </div>
           </li>
         ))}
-        {workers.length === 0 && <p className="py-6 text-center text-sm text-forge-steel">No hay trabajadores registrados.</p>}
+        {workers.length === 0 && <p className="py-6 text-center text-sm text-forge-steel">{wm.none}</p>}
       </ul>
       {pendingDeleteId && (
-        <p className="mt-1 text-center text-[11px] text-forge-stopped">Toca eliminar de nuevo para confirmar.</p>
+        <p className="mt-1 text-center text-[11px] text-forge-stopped">{wm.confirmDelete}</p>
       )}
 
       <BottomSheet
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editingId ? 'Editar trabajador' : 'Agregar trabajador'}
+        title={editingId ? wm.sheetTitleEdit : wm.sheetTitleCreate}
       >
         <form onSubmit={handleSubmit} className="space-y-3">
-          <Input label="Nombre completo" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+          <Input label={wm.name} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="RUT" placeholder="12345678-9" value={form.rut} onChange={(e) => setForm((f) => ({ ...f, rut: e.target.value }))} required />
-            <Input label="Correo" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required />
+            <Input label={wm.rut} placeholder="12345678-9" value={form.rut} onChange={(e) => setForm((f) => ({ ...f, rut: e.target.value }))} required />
+            <Input label={wm.email} type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required />
           </div>
           <Input
-            label="Cargo"
-            placeholder="Ej: Operador Corte, Supervisor de Planta…"
+            label={wm.position}
+            placeholder={wm.positionPlaceholder}
             value={form.position}
             onChange={(e) => setForm((f) => ({ ...f, position: e.target.value }))}
             required
           />
           <Select
-            label="Estación asignada"
+            label={wm.station}
             value={form.station ?? ''}
             onChange={(e) => setForm((f) => ({ ...f, station: (e.target.value || undefined) as Station | undefined }))}
           >
-            <option value="">Sin estación fija (oficina)</option>
+            <option value="">{wm.noStation}</option>
             {STATIONS.map((s) => (
-              <option key={s.key} value={s.key}>{s.label}</option>
+              <option key={s.key} value={s.key}>{formatStation(s.key, language)}</option>
             ))}
           </Select>
           {error && <p className="text-xs text-forge-stopped">{error}</p>}
           <Button type="submit" fullWidth size="lg">
-            {editingId ? 'Guardar cambios' : 'Agregar trabajador'}
+            {editingId ? wm.saveEdit : wm.saveCreate}
           </Button>
         </form>
       </BottomSheet>

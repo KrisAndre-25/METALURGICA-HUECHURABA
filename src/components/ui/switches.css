@@ -1,0 +1,92 @@
+/* Switches estilo Uiverse.io: track hundido + thumb metálico con conic-gradient. */
+
+.metal-switch {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.metal-switch__track {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #1b1f26 0%, #0b0d10 100%);
+  border: 1px solid #262b33;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.metal-switch[aria-checked='true'] .metal-switch__track {
+  border-color: rgba(255, 107, 26, 0.5);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    0 0 10px rgba(255, 107, 26, 0.35);
+}
+
+.metal-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: conic-gradient(from 220deg, #e8e8e8, #9a9a9a, #f5f5f5, #7d7d7d, #e8e8e8);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.28s ease;
+}
+
+.metal-switch[aria-checked='true'] .metal-switch__thumb {
+  transform: translateX(24px);
+  background: conic-gradient(from 220deg, #ffd9b8, #ff6b1a, #ffe4c7, #b9490f, #ffd9b8);
+}
+
+.metal-switch:focus-visible .metal-switch__track {
+  outline: 2px solid var(--color-forge-accent);
+  outline-offset: 2px;
+}
+
+/* Variante idioma: track más ancho con "ES"/"EN" a los lados del thumb. */
+.metal-switch--lang .metal-switch__track {
+  width: 72px;
+}
+
+.metal-switch--lang[aria-checked='true'] .metal-switch__thumb {
+  transform: translateX(44px);
+}
+
+.metal-switch__lang-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #4b5361;
+  transition: color 0.25s ease;
+  pointer-events: none;
+}
+
+.metal-switch__lang-label--es {
+  left: 7px;
+}
+
+.metal-switch__lang-label--en {
+  right: 7px;
+}
+
+.metal-switch--lang[aria-checked='false'] .metal-switch__lang-label--es {
+  color: #d7dbe1;
+}
+
+.metal-switch--lang[aria-checked='true'] .metal-switch__lang-label--en {
+  color: #ffd9b8;
+}

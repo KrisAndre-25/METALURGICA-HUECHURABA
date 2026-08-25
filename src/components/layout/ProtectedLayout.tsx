@@ -5,6 +5,8 @@ import { BottomNavigation, type NavTab } from './BottomNavigation';
 import { Sidebar } from './Sidebar';
 import { ChatPanel } from '../chat/ChatPanel';
 import { useChat } from '../../hooks/useChat';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
 
 interface ProtectedLayoutProps<T extends string> {
   tabs: NavTab<T>[];
@@ -23,6 +25,11 @@ interface ProtectedLayoutProps<T extends string> {
 export function ProtectedLayout<T extends string>({ tabs, active, onChange, title, children }: ProtectedLayoutProps<T>) {
   const [chatOpen, setChatOpen] = useState(false);
   const { messages } = useChat();
+  const { user } = useAuth();
+  const { t } = useUiPrefs();
+  // Privacidad del portal Cliente: sin acceso al Canal Taller (proceso interno
+  // de Admin/Operador/Vendedor) — ni botón flotante, ni panel montado.
+  const showChat = user?.role !== 'CLIENT';
 
   return (
     <div className="flex min-h-svh bg-forge-bg">
@@ -33,22 +40,26 @@ export function ProtectedLayout<T extends string>({ tabs, active, onChange, titl
       </div>
       <BottomNavigation tabs={tabs} active={active} onChange={onChange} />
 
-      <button
-        type="button"
-        onClick={() => setChatOpen(true)}
-        aria-label="Abrir Canal Taller"
-        className="fixed bottom-24 right-4 z-40 flex size-13 items-center justify-center rounded-full bg-forge-accent text-white shadow-lg shadow-black/40 transition-transform active:scale-95 sm:hidden"
-      >
-        <MessageSquareText className="size-5" />
-        {messages.length > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex size-3 items-center justify-center">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-forge-warn opacity-75" />
-            <span className="relative inline-flex size-2.5 rounded-full border-2 border-forge-bg bg-forge-warn" />
-          </span>
-        )}
-      </button>
+      {showChat && (
+        <>
+          <button
+            type="button"
+            onClick={() => setChatOpen(true)}
+            aria-label={t.protectedLayout.openChannel}
+            className="fixed bottom-24 right-4 z-40 flex size-13 items-center justify-center rounded-full bg-forge-accent text-white shadow-lg shadow-black/40 transition-transform active:scale-95 sm:hidden"
+          >
+            <MessageSquareText className="size-5" />
+            {messages.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex size-3 items-center justify-center">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-forge-warn opacity-75" />
+                <span className="relative inline-flex size-2.5 rounded-full border-2 border-forge-bg bg-forge-warn" />
+              </span>
+            )}
+          </button>
 
-      <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
+          <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
+        </>
+      )}
     </div>
   );
 }

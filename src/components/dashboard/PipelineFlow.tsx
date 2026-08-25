@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import type { Station } from '../../types/order';
 import type { StationLoad } from '../../types/kpi';
-import { STATION_META } from '../../data/mockStations';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
+import { formatStationShort } from '../../utils/formatters';
 import { cn } from '../ui/cn';
 
 interface PipelineFlowProps {
@@ -12,12 +13,12 @@ interface PipelineFlowProps {
 
 /** Barra horizontal deslizable de las 7 estaciones; tocar un chip filtra el resto del dashboard. */
 export function PipelineFlow({ data, activeStation, onSelectStation }: PipelineFlowProps) {
+  const { language } = useUiPrefs();
   const maxCount = Math.max(...data.map((d) => d.orderCount), 1);
 
   return (
     <div className="-mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
       {data.map(({ station, orderCount }, index) => {
-        const meta = STATION_META[station];
         const isActive = activeStation === station;
         const loadRatio = orderCount / maxCount;
         const isBottleneck = orderCount >= 3;
@@ -45,7 +46,7 @@ export function PipelineFlow({ data, activeStation, onSelectStation }: PipelineF
               </span>
               {isBottleneck && <span className="size-1.5 rounded-full bg-forge-warn" />}
             </div>
-            <span className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-forge-steel">{meta.shortLabel}</span>
+            <span className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-forge-steel">{formatStationShort(station, language)}</span>
             <span className={cn('text-2xl font-bold leading-none', isActive ? 'text-forge-accent' : 'text-slate-100')}>{orderCount}</span>
             <div className="h-1 w-full overflow-hidden rounded-full bg-forge-border/80">
               <motion.div

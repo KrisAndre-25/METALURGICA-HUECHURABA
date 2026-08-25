@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Variante para el switch de alto contraste: cualquier utilidad `high-contrast:*`
+   se activa cuando el elemento (o un ancestro) tiene la clase `.high-contrast`,
+   que UiPrefsContext alterna en <html>. */
+@custom-variant high-contrast (&:where(.high-contrast, .high-contrast *));
+
 @theme {
   --color-forge-bg: #0b0d10;
   --color-forge-surface: #14171c;
@@ -21,4 +26,17 @@ body {
 
 #root {
   min-height: 100svh;
+}
+
+/* Modo alto contraste: texto secundario más claro y bordes más marcados en
+   TODO lo que ya usa los tokens `text-forge-steel`/`border-forge-border`,
+   sin tener que tocar cada componente. */
+.high-contrast {
+  --color-forge-steel: #c7ced9;
+  --color-forge-border: #4a5262;
+}
+
+.high-contrast :where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-forge-accent);
+  outline-offset: 2px;
 }

@@ -1,8 +1,9 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Factory, Lock, Mail, ShieldCheck, Truck, Wrench } from 'lucide-react';
+import { Factory, Handshake, Lock, Mail, ShieldCheck, Truck, Wrench } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/ui/Toast';
+import { useUiPrefs } from '../contexts/UiPrefsContext';
 import { cn } from '../components/ui/cn';
 import type { UserRole } from '../types/user';
 
@@ -12,19 +13,6 @@ interface QuickRole {
   label: string;
   icon: typeof ShieldCheck;
 }
-
-/**
- * Los 3 correos son los usuarios reales que ya existen en `mockUsers.ts` — no
- * `admin@metalurgicahuechuraba.cl` / `operador@metalurgicahuechuraba.cl` /
- * `cliente@constructora.cl` que no están registrados en el sistema. Usar esos
- * literalmente haría fallar el login de prueba, así que mapeé cada rol pedido
- * a su equivalente real ya existente (mismo dominio real de la planta).
- */
-const QUICK_ROLES: QuickRole[] = [
-  { role: 'ADMIN', email: 'sergio@metalurgicahuechuraba.cl', label: 'Admin (Sergio)', icon: ShieldCheck },
-  { role: 'OPERATOR', email: 'jsoto@metalurgicahuechuraba.cl', label: 'Operador Taller', icon: Wrench },
-  { role: 'CLIENT', email: 'contacto@constructoraandes.cl', label: 'Cliente B2B', icon: Truck },
-];
 
 const DEMO_PASSWORD = 'demo1234';
 
@@ -86,11 +74,26 @@ function DarkField(props: {
 export function Login() {
   const { login } = useAuth();
   const { showToast } = useToast();
+  const { t } = useUiPrefs();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+
+  /**
+   * Los correos son los usuarios reales que ya existen en `mockUsers.ts` — no
+   * `admin@metalurgicahuechuraba.cl` / `operador@metalurgicahuechuraba.cl` /
+   * `cliente@constructora.cl` que no están registrados en el sistema. Usar esos
+   * literalmente haría fallar el login de prueba, así que mapeé cada rol pedido
+   * a su equivalente real ya existente (mismo dominio real de la planta).
+   */
+  const QUICK_ROLES: QuickRole[] = [
+    { role: 'ADMIN', email: 'sergio@metalurgicahuechuraba.cl', label: t.login.roleAdmin, icon: ShieldCheck },
+    { role: 'OPERATOR', email: 'jsoto@metalurgicahuechuraba.cl', label: t.login.roleOperator, icon: Wrench },
+    { role: 'VENDEDOR', email: 'diego@metalurgicahuechuraba.cl', label: t.login.roleVendedor, icon: Handshake },
+    { role: 'CLIENT', email: 'contacto@constructoraandes.cl', label: t.login.roleClient, icon: Truck },
+  ];
 
   const selectRole = (role: QuickRole) => {
     setEmail(role.email);
@@ -102,7 +105,7 @@ export function Login() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError('Ingresa un correo.');
+      setError(t.login.errorEmpty);
       return;
     }
     setLoading(true);
@@ -112,10 +115,10 @@ export function Login() {
       const ok = login(email);
       setLoading(false);
       if (!ok) {
-        setError('Correo no encontrado o usuario inactivo.');
-        showToast('No pudimos iniciar sesión con ese correo.', 'error');
+        setError(t.login.errorNotFound);
+        showToast(t.login.toastError, 'error');
       } else {
-        showToast('Sesión iniciada correctamente.');
+        showToast(t.login.toastSuccess);
       }
     }, 350);
   };
@@ -134,11 +137,11 @@ export function Login() {
           <div className="flex size-14 items-center justify-center rounded-2xl bg-forge-accent/15">
             <Factory className="size-7 text-forge-accent" />
           </div>
-          <h1 className="text-lg font-bold text-neutral-100">ForgeFlow</h1>
-          <p className="text-xs text-neutral-500">Industrial Control Tower — Metalúrgica Huechuraba</p>
+          <h1 className="text-lg font-bold text-neutral-100">{t.login.appName}</h1>
+          <p className="text-xs text-neutral-500">{t.login.tagline}</p>
         </div>
 
-        <div className="mb-5 grid grid-cols-3 gap-2">
+        <div className="mb-5 grid grid-cols-4 gap-2">
           {QUICK_ROLES.map((role) => {
             const Icon = role.icon;
             const isActive = selectedRole === role.role;
@@ -169,7 +172,7 @@ export function Login() {
             icon={<Mail className="size-4" />}
             value={email}
             onChange={(v) => { setEmail(v); setSelectedRole(null); }}
-            placeholder="Correo"
+            placeholder={t.login.emailPlaceholder}
             required
           />
           <DarkField
@@ -177,7 +180,7 @@ export function Login() {
             icon={<Lock className="size-4" />}
             value={password}
             onChange={setPassword}
-            placeholder="Contraseña"
+            placeholder={t.login.passwordPlaceholder}
           />
           {error && <p className="px-1 text-xs text-forge-stopped">{error}</p>}
 
@@ -189,20 +192,20 @@ export function Login() {
             transition={{ duration: 0.15 }}
             className="h-13 w-full rounded-2xl bg-forge-accent text-sm font-semibold text-white transition-all disabled:opacity-60"
           >
-            {loading ? 'Ingresando…' : 'Iniciar Sesión'}
+            {loading ? t.login.submitLoading : t.login.submitIdle}
           </motion.button>
 
           <button
             type="button"
-            onClick={() => showToast('No disponible en este entorno de demo — contacta al administrador.', 'info')}
+            onClick={() => showToast(t.login.forgotPasswordToast, 'info')}
             className="block w-full text-center text-xs text-neutral-500 transition-colors hover:text-neutral-300"
           >
-            ¿Olvidaste tu contraseña?
+            {t.login.forgotPassword}
           </button>
         </form>
 
         <p className="mt-5 text-center text-[10px] text-neutral-600">
-          Entorno de demo — la contraseña no se valida, solo el correo.
+          {t.login.demoNote}
         </p>
       </motion.div>
     </div>

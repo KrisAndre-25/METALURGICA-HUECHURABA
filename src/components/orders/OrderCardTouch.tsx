@@ -2,11 +2,13 @@ import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import type { WorkOrder } from '../../types/order';
 import { formatDate, formatStation } from '../../utils/formatters';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { OrderPriorityBadge } from './OrderPriorityBadge';
 import { ProgressBar } from '../ui/ProgressBar';
 
 export function OrderCardTouch({ order, onOpen }: { order: WorkOrder; onOpen: (order: WorkOrder) => void }) {
+  const { t, language } = useUiPrefs();
   return (
     <motion.button
       type="button"
@@ -29,14 +31,14 @@ export function OrderCardTouch({ order, onOpen }: { order: WorkOrder; onOpen: (o
 
       <div className="mt-3">
         <div className="mb-1 flex items-center justify-between text-xs text-forge-steel">
-          <span>{formatStation(order.currentStation)}</span>
+          <span>{formatStation(order.currentStation, language)}</span>
           <span>{order.progressPercentage}%</span>
         </div>
         <ProgressBar percentage={order.progressPercentage} status={order.status} />
       </div>
 
       <p className="mt-3 text-xs text-forge-steel">
-        Comprometida {formatDate(order.promisedDate)} · {order.assignedOperator}
+        {t.orders.cardTouch.promised} {formatDate(order.promisedDate, language)} · {order.assignedOperator}
       </p>
     </motion.button>
   );

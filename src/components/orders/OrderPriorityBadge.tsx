@@ -1,4 +1,6 @@
 import { Badge } from '../ui/Badge';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
+import { formatPriority } from '../../utils/formatters';
 import type { Priority } from '../../types/order';
 
 const TONE: Record<Priority, 'ok' | 'warn' | 'risk' | 'stopped'> = {
@@ -9,5 +11,6 @@ const TONE: Record<Priority, 'ok' | 'warn' | 'risk' | 'stopped'> = {
 };
 
 export function OrderPriorityBadge({ priority }: { priority: Priority }) {
-  return <Badge tone={TONE[priority]}>{priority}</Badge>;
+  const { language } = useUiPrefs();
+  return <Badge tone={TONE[priority]}>{formatPriority(priority, language)}</Badge>;
 }

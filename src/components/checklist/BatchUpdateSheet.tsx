@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { Textarea } from '../ui/Input';
 import { useOrders } from '../../hooks/useOrders';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUiPrefs } from '../../contexts/UiPrefsContext';
 import { useToast } from '../ui/Toast';
 
 interface BatchUpdateSheetProps {
@@ -18,12 +19,14 @@ export function BatchUpdateSheet({ open, orderIds, onClose, onDone }: BatchUpdat
   const { user } = useAuth();
   const { advanceStation, addNote } = useOrders();
   const { showToast } = useToast();
+  const { t } = useUiPrefs();
   const [note, setNote] = useState('');
+  const label = orderIds.length === 1 ? orderIds[0] : t.checklist.batch.multiLabel(orderIds.length);
 
   const handleBatchAdvance = () => {
     if (!user) return;
     orderIds.forEach((id) => advanceStation(id, user.name, user.role, note.trim() || undefined));
-    showToast(`${orderIds.join(', ')} avanzaron, cada una a su siguiente estación.`);
+    showToast(t.checklist.batch.toastAdvanced(orderIds.join(', ')));
     setNote('');
     onDone();
   };
@@ -31,13 +34,13 @@ export function BatchUpdateSheet({ open, orderIds, onClose, onDone }: BatchUpdat
   const handleBatchNote = () => {
     if (!user || !note.trim()) return;
     orderIds.forEach((id) => addNote(id, user.name, user.role, note.trim()));
-    showToast(`Nota agregada a ${orderIds.join(', ')}.`);
+    showToast(t.checklist.batch.toastNote(orderIds.join(', ')));
     setNote('');
     onDone();
   };
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Actualización en lote" subtitle={`${orderIds.length} OTs seleccionadas`}>
+    <BottomSheet open={open} onClose={onClose} title={t.checklist.batch.title} subtitle={t.checklist.batch.subtitle(orderIds.length)}>
       {/* Lista explícita de qué OTs recibirán la acción — nunca "a todas" a secas. */}
       <div className="mb-3 flex flex-wrap gap-1.5">
         {orderIds.map((id) => (
@@ -48,17 +51,17 @@ export function BatchUpdateSheet({ open, orderIds, onClose, onDone }: BatchUpdat
       </div>
 
       <Textarea
-        label={`Nota para estas ${orderIds.length} OTs (ej: incidencia común)`}
-        placeholder="Ej: cuadrilla reasignada por licencia médica…"
+        label={t.checklist.batch.noteLabel(orderIds.length)}
+        placeholder={t.checklist.batch.notePlaceholder}
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
       <div className="mt-4 flex flex-col gap-2">
         <Button variant="secondary" size="lg" fullWidth onClick={handleBatchNote} disabled={!note.trim()}>
-          Agregar nota a {orderIds.length === 1 ? orderIds[0] : `estas ${orderIds.length} OTs`}
+          {t.checklist.batch.addNoteBtn(label)}
         </Button>
         <Button variant="primary" size="lg" fullWidth onClick={handleBatchAdvance}>
-          Avanzar {orderIds.length === 1 ? orderIds[0] : `estas ${orderIds.length} OTs`} a la siguiente estación
+          {t.checklist.batch.advanceBtn(label)}
         </Button>
       </div>
     </BottomSheet>
