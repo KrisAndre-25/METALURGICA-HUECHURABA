@@ -54,7 +54,7 @@ export function Button({
         'inline-flex select-none items-center justify-center gap-2 rounded-xl font-semibold outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-forge-accent focus-visible:ring-offset-2 focus-visible:ring-offset-forge-bg',
         'disabled:cursor-not-allowed disabled:opacity-40',
-        'high-contrast:font-bold high-contrast:ring-2 high-contrast:ring-white/40 high-contrast:ring-offset-1',
+        'high-contrast:font-bold high-contrast:ring-2 high-contrast:ring-black/60 high-contrast:ring-offset-1',
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],
         fullWidth && 'w-full',

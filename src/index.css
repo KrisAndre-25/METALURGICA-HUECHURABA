@@ -28,12 +28,67 @@ body {
   min-height: 100svh;
 }
 
-/* Modo alto contraste: texto secundario más claro y bordes más marcados en
-   TODO lo que ya usa los tokens `text-forge-steel`/`border-forge-border`,
-   sin tener que tocar cada componente. */
+/* Modo alto contraste: invierte toda la app a fondo blanco con texto y
+   bordes negros (no solo aclara un par de tokens). Al sobreescribir los
+   tokens `--color-forge-*` esto se propaga solo con CSS a todo lo que ya
+   usa `bg-forge-*`/`text-forge-*`/`border-forge-*` (cards, sidebar,
+   header, inputs, badges, sheets…) sin tocar cada componente. Los colores
+   de estado (ok/warn/risk/stopped/accent) se oscurecen para mantener un
+   contraste real (~4.5:1+) sobre el nuevo fondo blanco, no solo estético. */
 .high-contrast {
-  --color-forge-steel: #c7ced9;
-  --color-forge-border: #4a5262;
+  --color-forge-bg: #ffffff;
+  --color-forge-surface: #ffffff;
+  --color-forge-surface-2: #f0f0f0;
+  --color-forge-border: #000000;
+  --color-forge-steel: #1a1a1a;
+  --color-forge-accent: #b23a00;
+  --color-forge-accent-dim: #7a2800;
+  --color-forge-ok: #15803d;
+  --color-forge-warn: #92400e;
+  --color-forge-risk: #c2410c;
+  --color-forge-stopped: #b91c1c;
+}
+
+/* Texto y superficies que no usan los tokens forge-* (clases sueltas de
+   Tailwind repartidas en varios componentes) también pasan a negro sobre
+   blanco, para que "alto contraste" sea realmente todo el fondo, no líneas. */
+/* Texto sin clase de color propia (hereda el `text-slate-100` fijo del
+   `body`, que no es un token forge-* reactivo): sin esto, títulos como
+   "ForgeFlow" o el nombre del usuario en la sidebar quedan pálidos. */
+.high-contrast body {
+  color: #000000;
+}
+
+.high-contrast :where(.text-slate-100, .text-neutral-100, .text-neutral-300) {
+  color: #000000;
+}
+
+.high-contrast :where(.text-neutral-400, .text-neutral-500, .text-neutral-600) {
+  color: #333333;
+}
+
+.high-contrast :where(.bg-\[\#171717\]) {
+  background-color: #ffffff;
+  box-shadow: none;
+  outline: 2px solid #000000;
+}
+
+/* Los tintes translúcidos (bg-forge-ok/10, border-forge-accent/30, etc.)
+   están pensados para verse sobre fondo OSCURO: mezclados hacia
+   transparente, sobre el nuevo fondo blanco quedan casi invisibles. En
+   vez de flatten uno por uno, se neutralizan por patrón: fondo gris claro
+   sólido, borde y texto negros. El color semántico (ok/warn/risk/stopped)
+   se sigue viendo en el ícono y el texto que NO lleva opacidad. */
+.high-contrast [class*="bg-forge-"][class*="/"] {
+  background-color: #eef0f2 !important;
+}
+
+.high-contrast [class*="border-forge-"][class*="/"] {
+  border-color: #000000 !important;
+}
+
+.high-contrast [class*="text-forge-"][class*="/"] {
+  color: #1a1a1a !important;
 }
 
 .high-contrast :where(button, a, input, select, textarea):focus-visible {

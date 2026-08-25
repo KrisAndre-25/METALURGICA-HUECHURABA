@@ -9,7 +9,7 @@ const es = {
   login: {
     appName: 'ForgeFlow',
     tagline: 'Industrial Control Tower — Metalúrgica Huechuraba',
-    roleAdmin: 'Admin (Sergio)',
+    roleAdmin: 'Administración',
     roleOperator: 'Operador Taller',
     roleVendedor: 'Vendedor',
     roleClient: 'Cliente B2B',
@@ -350,7 +350,7 @@ const en: typeof es = {
   login: {
     appName: 'ForgeFlow',
     tagline: 'Industrial Control Tower — Huechuraba Metalworks',
-    roleAdmin: 'Admin (Sergio)',
+    roleAdmin: 'Admin',
     roleOperator: 'Shop Operator',
     roleVendedor: 'Sales Rep',
     roleClient: 'B2B Client',
