@@ -1,9 +1,12 @@
 /**
- * ADMIN: acceso total (torre de control, finanzas UF, gestión de usuarios).
- * OPERATOR: taller/oficina — crea OTs desde OC y opera el Fast Checklist.
+ * ADMIN (Administración): acceso total — torre de control, finanzas UF, gestión
+ * de usuarios, y es el ÚNICO rol autorizado para cargar una OC y generar la OT.
+ * OPERATOR: taller/oficina — opera el Fast Checklist y avanza estaciones; no crea OTs.
+ * VENDEDOR: recibe la venta del cliente y emite una Solicitud de Venta con prioridad,
+ * que Administración revisa para cargarla como OC.
  * CLIENT: solo lectura B2B, acotado a las OTs de su propia empresa (ver `clientName`).
  */
-export type UserRole = 'ADMIN' | 'OPERATOR' | 'CLIENT';
+export type UserRole = 'ADMIN' | 'OPERATOR' | 'VENDEDOR' | 'CLIENT';
 
 export interface User {
   id: string;

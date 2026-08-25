@@ -1,5 +1,6 @@
-import { STATIONS, type PurchaseOrder, type Station, type WorkOrder } from '../types/order';
+import { STATIONS, type DelayReason, type PurchaseOrder, type Station, type WorkOrder } from '../types/order';
 import type { HealthScore, PlantKpis, StationLoad, StatusSummary } from '../types/kpi';
+import type { Language } from '../types/language';
 import { STATION_META } from '../data/mockStations';
 import { daysBetween } from './formatters';
 
@@ -38,18 +39,34 @@ const STATUS_BASE_SCORE: Record<WorkOrder['status'], number> = {
   COMPLETADO: 100,
 };
 
+const RISK_FACTOR_LABELS: Record<Language, { stopped: string; overdue: string; slow: string; tight: string }> = {
+  es: {
+    stopped: 'Estación detenida',
+    overdue: 'Fecha comprometida vencida',
+    slow: 'Ritmo de avance insuficiente',
+    tight: 'Margen ajustado a la fecha comprometida',
+  },
+  en: {
+    stopped: 'Station stopped',
+    overdue: 'Past promised date',
+    slow: 'Insufficient progress pace',
+    tight: 'Tight margin to promised date',
+  },
+};
+
 /** Puntaje 0-100 de una OT: base por estado, ajustado por cercanía a la fecha comprometida. */
-export function calculateHealthScore(order: WorkOrder): HealthScore {
+export function calculateHealthScore(order: WorkOrder, language: Language = 'es'): HealthScore {
   const daysToPromised = daysBetween(new Date().toISOString(), order.promisedDate);
   const base = STATUS_BASE_SCORE[order.status];
   const deadlinePenalty = order.status !== 'COMPLETADO' && daysToPromised < 0 ? Math.min(Math.abs(daysToPromised) * 2, 30) : 0;
   const score = Math.max(0, Math.min(100, base - deadlinePenalty));
+  const labels = RISK_FACTOR_LABELS[language];
 
   let mainRiskFactor: string | null = null;
-  if (order.status === 'DETENIDO') mainRiskFactor = 'Estación detenida';
-  else if (order.status !== 'COMPLETADO' && daysToPromised < 0) mainRiskFactor = 'Fecha comprometida vencida';
-  else if (order.status === 'ATRASADO') mainRiskFactor = 'Ritmo de avance insuficiente';
-  else if (order.status === 'EN_RIESGO') mainRiskFactor = 'Margen ajustado a la fecha comprometida';
+  if (order.status === 'DETENIDO') mainRiskFactor = labels.stopped;
+  else if (order.status !== 'COMPLETADO' && daysToPromised < 0) mainRiskFactor = labels.overdue;
+  else if (order.status === 'ATRASADO') mainRiskFactor = labels.slow;
+  else if (order.status === 'EN_RIESGO') mainRiskFactor = labels.tight;
 
   return { orderId: order.id, score, status: order.status, daysToPromised, mainRiskFactor };
 }
@@ -82,4 +99,22 @@ export function calculatePlantKpis(orders: WorkOrder[], purchaseOrders: Purchase
 
 export function stationLabelFor(station: Station): string {
   return STATION_META[station].label;
+}
+
+export interface DelayReasonSummary {
+  reason: DelayReason;
+  count: number;
+}
+
+/** Cuenta las paradas registradas (eventos HOLD con motivo) por causa raíz, para el reporte de cuellos de botella. */
+export function summarizeDelayReasons(orders: WorkOrder[]): DelayReasonSummary[] {
+  const counts = new Map<DelayReason, number>();
+  for (const order of orders) {
+    for (const event of order.history) {
+      if (event.type === 'HOLD' && event.delayReason) {
+        counts.set(event.delayReason, (counts.get(event.delayReason) ?? 0) + 1);
+      }
+    }
+  }
+  return Array.from(counts.entries()).map(([reason, count]) => ({ reason, count }));
 }

@@ -6,7 +6,7 @@ import { storageService } from '../services/storageService';
 const AUTH_USER_KEY = 'auth.user';
 const USERS_KEY = 'users.v1';
 
-const VALID_ROLES = new Set(['ADMIN', 'OPERATOR', 'CLIENT']);
+const VALID_ROLES = new Set(['ADMIN', 'OPERATOR', 'VENDEDOR', 'CLIENT']);
 
 function isValidUsers(value: unknown): value is User[] {
   if (!Array.isArray(value) || value.length === 0) return false;

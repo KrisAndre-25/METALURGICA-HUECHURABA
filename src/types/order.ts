@@ -26,7 +26,44 @@ export interface PurchaseOrder {
   issuedDate: string;
   totalAmountUF: number;
   status: PurchaseOrderStatus;
+  /** Vendedor que originó la venta (nombre) — es el contacto comercial mostrado al cliente. */
+  assignedVendedor?: string;
 }
+
+export type SalesRequestStatus = 'PENDIENTE' | 'CARGADA' | 'RECHAZADA';
+
+/**
+ * Solicitud de Venta: el Vendedor la crea al recibir la venta del cliente y le
+ * asigna Prioridad. Administración la revisa y, si corresponde, la "carga" —
+ * eso crea la OC y genera automáticamente la OT (ver `loadPurchaseOrder`).
+ */
+export interface SalesRequest {
+  id: string;
+  clientName: string;
+  clientRut: string;
+  projectName: string;
+  description: string;
+  estimatedAmountUF: number;
+  priority: Priority;
+  requestedBy: string;
+  requestedAt: string;
+  status: SalesRequestStatus;
+  purchaseOrderId?: string;
+  reviewNote?: string;
+}
+
+/** Los 5 motivos predefinidos para detener una OT — sustituye la nota libre por un registro estructurado. */
+export const DELAY_REASONS = [
+  'AVERIA_MAQUINARIA',
+  'FALTA_INSUMOS',
+  'FALTA_PERSONAL',
+  'CORTE_LUZ',
+  'ESPERA_INSPECCION',
+] as const;
+
+export type DelayReason = (typeof DELAY_REASONS)[number];
+
+export type CorrectiveAction = 'BALANCEAR_LINEA' | 'HORAS_EXTRA';
 
 /** Especificaciones técnicas del producto a fabricar dentro de una OT. */
 export interface ProductSpecs {
@@ -48,6 +85,10 @@ export interface TraceabilityEvent {
   /** Rol de quien generó el evento, para mostrarlo junto al nombre en el historial. */
   actorRole: import('./user').UserRole;
   note?: string;
+  /** Solo en eventos `HOLD`: motivo estructurado de la parada (análisis de causa raíz). */
+  delayReason?: DelayReason;
+  /** Solo en eventos `RESUME`: acción correctiva aplicada al reanudar. */
+  correctiveAction?: CorrectiveAction;
 }
 
 /** Orden de Fabricación / Trabajo (OT): la unidad operativa que se sigue por planta. */

@@ -1,5 +1,16 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { STATIONS, type ProductSpecs, type Priority, type PurchaseOrder, type Station, type TraceabilityEvent, type WorkOrder } from '../types/order';
+import {
+  STATIONS,
+  type CorrectiveAction,
+  type DelayReason,
+  type ProductSpecs,
+  type Priority,
+  type PurchaseOrder,
+  type SalesRequest,
+  type Station,
+  type TraceabilityEvent,
+  type WorkOrder,
+} from '../types/order';
 import type { ChatMessage } from '../types/chat';
 import type { UserRole } from '../types/user';
 import { mockDataService } from '../services/mockDataService';
@@ -8,10 +19,12 @@ import { storageService } from '../services/storageService';
 const ORDERS_KEY = 'orders.v4';
 const PURCHASE_ORDERS_KEY = 'purchaseOrders.v1';
 const MESSAGES_KEY = 'messages.v1';
+const SALES_REQUESTS_KEY = 'salesRequests.v1';
 
 const VALID_STATUSES = new Set(['EN_TIEMPO', 'EN_RIESGO', 'ATRASADO', 'DETENIDO', 'COMPLETADO']);
 const VALID_PRIORITIES = new Set(['BAJA', 'NORMAL', 'ALTA', 'URGENTE']);
-const VALID_ROLES = new Set(['ADMIN', 'OPERATOR', 'CLIENT']);
+const VALID_ROLES = new Set(['ADMIN', 'OPERATOR', 'VENDEDOR', 'CLIENT']);
+const VALID_SALES_REQUEST_STATUSES = new Set(['PENDIENTE', 'CARGADA', 'RECHAZADA']);
 
 /**
  * Valida la FORMA real de los datos, no solo que existan. Antes el historial no
@@ -50,6 +63,15 @@ function isValidMessages(value: unknown): value is ChatMessage[] {
   });
 }
 
+function isValidSalesRequests(value: unknown): value is SalesRequest[] {
+  if (!Array.isArray(value)) return false;
+  return value.every((raw) => {
+    if (typeof raw !== 'object' || raw === null) return false;
+    const r = raw as Partial<SalesRequest>;
+    return typeof r.id === 'string' && typeof r.clientName === 'string' && VALID_SALES_REQUEST_STATUSES.has(r.status as string);
+  });
+}
+
 export interface NewOrderInput {
   purchaseOrderId: string;
   clientName: string;
@@ -67,6 +89,8 @@ export interface ClientProfile {
   activeCount: number;
   completedCount: number;
   totalAmountUF: number;
+  /** Vendedor a cargo de la OC más reciente de este cliente — único canal directo del portal Cliente. */
+  primaryVendedor: string | null;
 }
 
 export interface NewChatMessageInput {
@@ -76,9 +100,25 @@ export interface NewChatMessageInput {
   orderId?: string;
 }
 
+export interface NewSalesRequestInput {
+  clientName: string;
+  clientRut: string;
+  projectName: string;
+  description: string;
+  estimatedAmountUF: number;
+  priority: Priority;
+}
+
+export interface LoadPurchaseOrderInput {
+  salesRequestId: string;
+  productSpecs: ProductSpecs;
+  promisedDate: string;
+}
+
 interface OrderContextValue {
   orders: WorkOrder[];
   purchaseOrders: PurchaseOrder[];
+  salesRequests: SalesRequest[];
   /** OTs en o después de Despacho: en tránsito (estación Despacho) o ya entregadas (COMPLETADO). */
   shipments: WorkOrder[];
   messages: ChatMessage[];
@@ -87,7 +127,12 @@ interface OrderContextValue {
   advanceStation: (id: string, actor: string, actorRole: UserRole, note?: string) => void;
   addNote: (id: string, actor: string, actorRole: UserRole, note: string) => void;
   reassignOperator: (id: string, operator: string, actor: string, actorRole: UserRole) => void;
+  holdOrder: (id: string, actor: string, actorRole: UserRole, reason: DelayReason, note?: string) => void;
+  resumeOrder: (id: string, actor: string, actorRole: UserRole, correctiveAction?: CorrectiveAction, note?: string) => void;
   createOrder: (input: NewOrderInput, actor: string, actorRole: UserRole) => WorkOrder;
+  createSalesRequest: (input: NewSalesRequestInput, actor: string) => SalesRequest;
+  loadPurchaseOrder: (input: LoadPurchaseOrderInput, actor: string, actorRole: UserRole) => WorkOrder | null;
+  rejectSalesRequest: (id: string, actor: string, actorRole: UserRole, note?: string) => void;
   getClientProfile: (clientName: string) => ClientProfile;
   sendMessage: (input: NewChatMessageInput) => void;
 }
@@ -131,6 +176,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     return isValidMessages(stored) ? stored : mockDataService.getInitialMessages();
   });
 
+  const [salesRequests, setSalesRequests] = useState<SalesRequest[]>(() => {
+    const stored = storageService.get<SalesRequest[] | null>(SALES_REQUESTS_KEY, null);
+    return isValidSalesRequests(stored) ? stored : [];
+  });
+
   // Sincronización reactiva entre pestañas/ventanas: si otra pestaña (ej. un OPERATOR
   // en el taller) avanza una OT o escribe en el canal, esta pestaña (ej. el ADMIN o un
   // CLIENT) se entera al instante sin recargar — el evento `storage` solo llega a
@@ -145,10 +195,14 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     const unsubMessages = storageService.subscribe<ChatMessage[]>(MESSAGES_KEY, (value) => {
       if (isValidMessages(value)) setMessages(value);
     });
+    const unsubSalesRequests = storageService.subscribe<SalesRequest[]>(SALES_REQUESTS_KEY, (value) => {
+      if (isValidSalesRequests(value)) setSalesRequests(value);
+    });
     return () => {
       unsubOrders();
       unsubPos();
       unsubMessages();
+      unsubSalesRequests();
     };
   }, []);
 
@@ -164,6 +218,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const persistMessages = (next: ChatMessage[]) => {
     storageService.set(MESSAGES_KEY, next);
+    return next;
+  };
+
+  const persistSalesRequests = (next: SalesRequest[]) => {
+    storageService.set(SALES_REQUESTS_KEY, next);
     return next;
   };
 
@@ -228,6 +287,40 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     })));
   };
 
+  /** Detiene la OT con un motivo estructurado (análisis de causa raíz) en vez de una nota libre. */
+  const holdOrder = (id: string, actor: string, actorRole: UserRole, reason: DelayReason, note?: string) => {
+    setOrders((prev) => persistOrders(prev.map((order) => {
+      if (order.id !== id) return order;
+      const withEv = withEvent(order, {
+        type: 'HOLD',
+        station: order.currentStation,
+        timestamp: new Date().toISOString(),
+        actor,
+        actorRole,
+        note,
+        delayReason: reason,
+      });
+      return { ...withEv, status: 'DETENIDO' };
+    })));
+  };
+
+  /** Reanuda una OT detenida; opcionalmente registra la acción correctiva aplicada. */
+  const resumeOrder = (id: string, actor: string, actorRole: UserRole, correctiveAction?: CorrectiveAction, note?: string) => {
+    setOrders((prev) => persistOrders(prev.map((order) => {
+      if (order.id !== id) return order;
+      const withEv = withEvent(order, {
+        type: 'RESUME',
+        station: order.currentStation,
+        timestamp: new Date().toISOString(),
+        actor,
+        actorRole,
+        note,
+        correctiveAction,
+      });
+      return { ...withEv, status: 'EN_RIESGO' };
+    })));
+  };
+
   const createOrder = (input: NewOrderInput, actor: string, actorRole: UserRole): WorkOrder => {
     const now = new Date().toISOString();
     const sequence = orders.length + 1042;
@@ -254,9 +347,79 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     return newOrder;
   };
 
+  /** VENDEDOR registra la venta recibida y le asigna Prioridad — queda pendiente de que Administración la cargue. */
+  const createSalesRequest = (input: NewSalesRequestInput, actor: string): SalesRequest => {
+    const newRequest: SalesRequest = {
+      id: `SV-${Date.now()}`,
+      clientName: input.clientName.trim(),
+      clientRut: input.clientRut.trim(),
+      projectName: input.projectName.trim(),
+      description: input.description.trim(),
+      estimatedAmountUF: input.estimatedAmountUF,
+      priority: input.priority,
+      requestedBy: actor,
+      requestedAt: new Date().toISOString(),
+      status: 'PENDIENTE',
+    };
+    setSalesRequests((prev) => persistSalesRequests([newRequest, ...prev]));
+    return newRequest;
+  };
+
+  /**
+   * ÚNICA vía para que una OC ingrese al sistema: Administración revisa una Solicitud
+   * de Venta y la "carga" — esto crea la OC y genera automáticamente la OT (reutiliza
+   * `createOrder`, que ya deja la OT en la estación 1 con la Solicitud de Insumos
+   * como siguiente paso). Doble barrera de rol, igual que `addWorker` en AuthContext:
+   * verificado también aquí, no solo en la UI que oculta el botón a otros roles.
+   */
+  const loadPurchaseOrder = (input: LoadPurchaseOrderInput, actor: string, actorRole: UserRole): WorkOrder | null => {
+    if (actorRole !== 'ADMIN') return null;
+    const request = salesRequests.find((r) => r.id === input.salesRequestId && r.status === 'PENDIENTE');
+    if (!request) return null;
+
+    const now = new Date().toISOString();
+    const newPurchaseOrder: PurchaseOrder = {
+      id: `OC-${new Date().getFullYear()}-${900 + purchaseOrders.length}`,
+      clientName: request.clientName,
+      clientRut: request.clientRut,
+      issuedDate: now,
+      totalAmountUF: request.estimatedAmountUF,
+      status: 'RECIBIDA',
+      assignedVendedor: request.requestedBy,
+    };
+    setPurchaseOrders((prev) => persistPurchaseOrders([newPurchaseOrder, ...prev]));
+
+    const newOrder = createOrder(
+      {
+        purchaseOrderId: newPurchaseOrder.id,
+        clientName: request.clientName,
+        projectName: request.projectName,
+        productSpecs: input.productSpecs,
+        promisedDate: input.promisedDate,
+        priority: request.priority,
+      },
+      actor,
+      actorRole,
+    );
+
+    setSalesRequests((prev) => persistSalesRequests(prev.map((r) =>
+      r.id === request.id ? { ...r, status: 'CARGADA', purchaseOrderId: newPurchaseOrder.id } : r,
+    )));
+
+    return newOrder;
+  };
+
+  const rejectSalesRequest = (id: string, actor: string, actorRole: UserRole, note?: string) => {
+    if (actorRole !== 'ADMIN') return;
+    setSalesRequests((prev) => persistSalesRequests(prev.map((r) =>
+      r.id === id ? { ...r, status: 'RECHAZADA', reviewNote: note ?? `Rechazada por ${actor}` } : r,
+    )));
+  };
+
   const getClientProfile = (clientName: string): ClientProfile => {
     const clientPos = purchaseOrders.filter((po) => po.clientName === clientName);
     const clientOrders = orders.filter((o) => o.clientName === clientName);
+    const mostRecentPo = [...clientPos].sort((a, b) => new Date(b.issuedDate).getTime() - new Date(a.issuedDate).getTime())[0];
     return {
       clientName,
       clientRut: clientPos[0]?.clientRut ?? '',
@@ -265,6 +428,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       activeCount: clientOrders.filter((o) => o.status !== 'COMPLETADO').length,
       completedCount: clientOrders.filter((o) => o.status === 'COMPLETADO').length,
       totalAmountUF: clientPos.reduce((sum, po) => sum + po.totalAmountUF, 0),
+      primaryVendedor: mostRecentPo?.assignedVendedor ?? null,
     };
   };
 
@@ -289,6 +453,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     () => ({
       orders,
       purchaseOrders,
+      salesRequests,
       shipments,
       messages,
       updateOrder,
@@ -296,11 +461,16 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       advanceStation,
       addNote,
       reassignOperator,
+      holdOrder,
+      resumeOrder,
       createOrder,
+      createSalesRequest,
+      loadPurchaseOrder,
+      rejectSalesRequest,
       getClientProfile,
       sendMessage,
     }),
-    [orders, purchaseOrders, shipments, messages],
+    [orders, purchaseOrders, salesRequests, shipments, messages],
   );
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;

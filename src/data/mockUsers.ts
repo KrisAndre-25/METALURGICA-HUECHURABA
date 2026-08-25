@@ -10,4 +10,6 @@ export const mockUsers: User[] = [
   { id: 'u-007', name: 'Camila Torres', email: 'ctorres@metalurgicahuechuraba.cl', role: 'OPERATOR', station: 'DESPACHO', rut: '20.888.999-0', position: 'Encargada de Despacho', active: false },
   { id: 'u-008', name: 'Andrea Bello', email: 'contacto@constructoraandes.cl', role: 'CLIENT', clientName: 'Constructora Andes SpA', active: true },
   { id: 'u-009', name: 'Felipe Iturra', email: 'compras@mineraelcobre.cl', role: 'CLIENT', clientName: 'Minera El Cobre Ltda.', active: true },
+  { id: 'u-010', name: 'Diego Fuentes', email: 'diego@metalurgicahuechuraba.cl', role: 'VENDEDOR', rut: '14.111.222-3', position: 'Ejecutivo Comercial', active: true },
+  { id: 'u-011', name: 'Valentina Rojas', email: 'vrojas@metalurgicahuechuraba.cl', role: 'VENDEDOR', rut: '15.222.333-4', position: 'Ejecutiva Comercial', active: true },
 ];
