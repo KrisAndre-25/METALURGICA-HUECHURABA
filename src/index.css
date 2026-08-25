@@ -75,19 +75,42 @@ body {
 
 /* Los tintes translúcidos (bg-forge-ok/10, border-forge-accent/30, etc.)
    están pensados para verse sobre fondo OSCURO: mezclados hacia
-   transparente, sobre el nuevo fondo blanco quedan casi invisibles. En
-   vez de flatten uno por uno, se neutralizan por patrón: fondo gris claro
-   sólido, borde y texto negros. El color semántico (ok/warn/risk/stopped)
-   se sigue viendo en el ícono y el texto que NO lleva opacidad. */
-.high-contrast [class*="bg-forge-"][class*="/"] {
+   transparente, sobre el nuevo fondo blanco quedan casi invisibles. Se
+   neutralizan a un gris/negro sólido — el color semántico se sigue
+   viendo en el ícono y el texto que NO lleva opacidad.
+   IMPORTANTE: selectores de clase EXACTA (`.bg-forge-accent\/15`), no
+   `[class*="bg-forge-"][class*="/"]` — ese selector por sub-string
+   revienta contra CUALQUIER elemento que tenga `bg-forge-accent` (sin
+   opacidad) Y además cualquier OTRA clase con "/" en la misma lista (ej.
+   `hover:bg-forge-accent/90` o el `ring-black/60` del propio Button),
+   porque el atributo `class` completo es un solo string y `*=` no
+   respeta los límites entre clases — así es como el botón "Avanzar"
+   (bg-forge-accent, sin opacidad) terminaba con fondo gris e invisible. */
+.high-contrast :where(
+  .bg-forge-accent\/10, .bg-forge-accent\/15, .bg-forge-accent\/20, .bg-forge-accent\/90,
+  .bg-forge-border\/80,
+  .bg-forge-ok\/10, .bg-forge-ok\/15,
+  .bg-forge-risk\/15,
+  .bg-forge-steel\/10, .bg-forge-steel\/15, .bg-forge-steel\/50,
+  .bg-forge-stopped\/5, .bg-forge-stopped\/10, .bg-forge-stopped\/15, .bg-forge-stopped\/25,
+  .bg-forge-surface\/95,
+  .bg-forge-warn\/10, .bg-forge-warn\/15
+) {
   background-color: #eef0f2 !important;
 }
 
-.high-contrast [class*="border-forge-"][class*="/"] {
+.high-contrast :where(
+  .border-forge-accent\/30, .border-forge-accent\/40, .border-forge-accent\/50,
+  .border-forge-ok\/30,
+  .border-forge-risk\/30,
+  .border-forge-steel\/30,
+  .border-forge-stopped\/30,
+  .border-forge-warn\/30
+) {
   border-color: #000000 !important;
 }
 
-.high-contrast [class*="text-forge-"][class*="/"] {
+.high-contrast :where(.text-forge-steel\/60, .text-forge-steel\/70) {
   color: #1a1a1a !important;
 }
 
