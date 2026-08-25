@@ -57,10 +57,51 @@ function SectionHeading({ icon: Icon, children, count }: { icon: typeof Truck; c
   );
 }
 
+/**
+ * Recharts aplica `contentStyle`/`tick`/`stroke` como estilos inline (o
+ * atributos SVG `fill`/`stroke`), no como clases — un `!important` en CSS
+ * puede ganarle a un inline style, pero es frágil y no vale la pena
+ * cuando el propio componente ya sabe qué tema está activo. Se calculan
+ * los colores del tooltip/ejes/grid aquí, según `highContrast`, en vez de
+ * depender de que el texto herede el color del body (eso es justo lo que
+ * los dejaba negro-sobre-negro en alto contraste: el fondo del tooltip
+ * seguía fijo y oscuro, pero el texto pasaba a negro por herencia).
+ */
+function useChartTheme(highContrast: boolean) {
+  return highContrast
+    ? {
+        tooltipBg: '#000000',
+        tooltipBorder: '#ffffff',
+        tooltipText: '#ffffff',
+        axisFill: '#000000',
+        gridStroke: '#000000',
+        cursorFill: 'rgba(0, 0, 0, 0.12)',
+      }
+    : {
+        tooltipBg: '#14171c',
+        tooltipBorder: '#262b33',
+        tooltipText: '#f8fafc',
+        axisFill: '#8a94a3',
+        gridStroke: '#262b33',
+        cursorFill: '#1b1f26',
+      };
+}
+
 export function ControlTower() {
   const { allOrders, purchaseOrders, salesRequests, shipments } = useOrders();
   const { user } = useAuth();
-  const { t, language } = useUiPrefs();
+  const { t, language, highContrast } = useUiPrefs();
+  const chartTheme = useChartTheme(highContrast);
+  const tooltipContentStyle = {
+    background: chartTheme.tooltipBg,
+    border: `2px solid ${chartTheme.tooltipBorder}`,
+    borderRadius: 8,
+    fontSize: 12,
+    color: chartTheme.tooltipText,
+    fontWeight: highContrast ? 700 : 500,
+  };
+  const tooltipItemStyle = { color: chartTheme.tooltipText };
+  const tooltipLabelStyle = { color: chartTheme.tooltipText, fontWeight: 700 };
   const [activeStation, setActiveStation] = useState<Station | null>(null);
   // Solo el ID: el sheet siempre debe reflejar la OT viva, no una foto tomada al abrirlo.
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -159,7 +200,7 @@ export function ControlTower() {
                     <Cell key={entry.status} fill={`url(#grad-${entry.status})`} stroke="var(--color-forge-surface)" strokeWidth={2} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: '#14171c', border: '1px solid #262b33', borderRadius: 8, fontSize: 12 }} />
+                <Tooltip contentStyle={tooltipContentStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -184,12 +225,14 @@ export function ControlTower() {
                     <stop offset="100%" stopColor="#ff6b1a" stopOpacity={0.35} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#262b33" vertical={false} />
-                <XAxis dataKey="station" tick={{ fill: '#8a94a3', fontSize: 9 }} interval={0} angle={-25} textAnchor="end" height={55} />
-                <YAxis tick={{ fill: '#8a94a3', fontSize: 11 }} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} vertical={false} />
+                <XAxis dataKey="station" tick={{ fill: chartTheme.axisFill, fontSize: 9 }} interval={0} angle={-25} textAnchor="end" height={55} />
+                <YAxis tick={{ fill: chartTheme.axisFill, fontSize: 11 }} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ background: '#14171c', border: '1px solid #262b33', borderRadius: 8, fontSize: 12 }}
-                  cursor={{ fill: '#1b1f26' }}
+                  contentStyle={tooltipContentStyle}
+                  itemStyle={tooltipItemStyle}
+                  labelStyle={tooltipLabelStyle}
+                  cursor={{ fill: chartTheme.cursorFill }}
                   formatter={(value) => [`${value} h`, t.controlTower.tooltipLeadTime]}
                 />
                 <Bar dataKey="horas" fill="url(#grad-leadtime)" radius={[6, 6, 0, 0]} animationDuration={700} />
@@ -216,7 +259,7 @@ export function ControlTower() {
                         <Cell key={entry.reason} fill={DELAY_REASON_COLORS[entry.reason] ?? '#8a94a3'} stroke="var(--color-forge-surface)" strokeWidth={2} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ background: '#14171c', border: '1px solid #262b33', borderRadius: 8, fontSize: 12 }} />
+                    <Tooltip contentStyle={tooltipContentStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

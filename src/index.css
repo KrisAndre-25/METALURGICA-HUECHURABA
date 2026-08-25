@@ -114,6 +114,35 @@ body {
   color: #1a1a1a !important;
 }
 
+/* Red de seguridad para los tooltips de Recharts: ControlTower.tsx ya les
+   pasa `contentStyle`/`itemStyle`/`labelStyle` calculados según el tema
+   (fondo #000/texto #fff en alto contraste), pero esos son inline styles
+   — si Recharts renderiza alguna pieza sin cubrir explícitamente (o se
+   agrega un gráfico nuevo sin theming), esto evita que vuelva a quedar
+   texto oscuro sobre fondo oscuro. */
+.high-contrast .recharts-default-tooltip {
+  background-color: #000000 !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+}
+
+.high-contrast .recharts-tooltip-label,
+.high-contrast .recharts-tooltip-item,
+.high-contrast .recharts-tooltip-item-name,
+.high-contrast .recharts-tooltip-item-separator,
+.high-contrast .recharts-tooltip-item-value {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.high-contrast .recharts-cartesian-axis-tick text {
+  fill: #000000 !important;
+}
+
+.high-contrast .recharts-legend-item-text {
+  color: #000000 !important;
+}
+
 .high-contrast :where(button, a, input, select, textarea):focus-visible {
   outline: 2px solid var(--color-forge-accent);
   outline-offset: 2px;
