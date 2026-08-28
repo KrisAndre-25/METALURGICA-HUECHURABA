@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[ForgeFlow] Error de render capturado por ErrorBoundary:', error, info.componentStack);
+    console.error('[DMAIX] Error de render capturado por ErrorBoundary:', error, info.componentStack);
   }
 
   handleReload = () => {

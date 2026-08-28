@@ -5,16 +5,19 @@
    que UiPrefsContext alterna en <html>. */
 @custom-variant high-contrast (&:where(.high-contrast, .high-contrast *));
 
+/* Paleta DMAIX — regla 60-30-10: fondo Slate 900 (60%), superficies Slate
+   800/700 (30%), Cian Eléctrico como único acento de marca (10%). Los
+   colores de estado (ok/warn/risk/stopped) son semánticos, no de marca. */
 @theme {
-  --color-forge-bg: #0b0d10;
-  --color-forge-surface: #14171c;
-  --color-forge-surface-2: #1b1f26;
-  --color-forge-border: #262b33;
-  --color-forge-accent: #ff6b1a;
-  --color-forge-accent-dim: #b9490f;
-  --color-forge-steel: #8a94a3;
-  --color-forge-ok: #22c55e;
-  --color-forge-warn: #eab308;
+  --color-forge-bg: #0f172a;
+  --color-forge-surface: #1e293b;
+  --color-forge-surface-2: #334155;
+  --color-forge-border: #475569;
+  --color-forge-accent: #06b6d4;
+  --color-forge-accent-dim: #0e7490;
+  --color-forge-steel: #94a3b8;
+  --color-forge-ok: #10b981;
+  --color-forge-warn: #f59e0b;
   --color-forge-risk: #f97316;
   --color-forge-stopped: #ef4444;
 }
@@ -41,10 +44,10 @@ body {
   --color-forge-surface-2: #f0f0f0;
   --color-forge-border: #000000;
   --color-forge-steel: #1a1a1a;
-  --color-forge-accent: #b23a00;
-  --color-forge-accent-dim: #7a2800;
-  --color-forge-ok: #15803d;
-  --color-forge-warn: #92400e;
+  --color-forge-accent: #0e7490;
+  --color-forge-accent-dim: #155e75;
+  --color-forge-ok: #047857;
+  --color-forge-warn: #b45309;
   --color-forge-risk: #c2410c;
   --color-forge-stopped: #b91c1c;
 }
@@ -54,7 +57,7 @@ body {
    blanco, para que "alto contraste" sea realmente todo el fondo, no líneas. */
 /* Texto sin clase de color propia (hereda el `text-slate-100` fijo del
    `body`, que no es un token forge-* reactivo): sin esto, títulos como
-   "ForgeFlow" o el nombre del usuario en la sidebar quedan pálidos. */
+   "DMAIX" o el nombre del usuario en la sidebar quedan pálidos. */
 .high-contrast body {
   color: #000000;
 }
@@ -65,12 +68,6 @@ body {
 
 .high-contrast :where(.text-neutral-400, .text-neutral-500, .text-neutral-600) {
   color: #333333;
-}
-
-.high-contrast :where(.bg-\[\#171717\]) {
-  background-color: #ffffff;
-  box-shadow: none;
-  outline: 2px solid #000000;
 }
 
 /* Los tintes translúcidos (bg-forge-ok/10, border-forge-accent/30, etc.)
@@ -195,7 +192,7 @@ body {
 
 /* Alto contraste: amarillo neón en vez de heredar currentColor — un
    loader blanco quedaría invisible sobre las superficies que ya
-   invertimos a blanco (ej. la tarjeta de Login, `bg-[#171717]` arriba). */
+   invertimos a blanco (ej. la tarjeta de Login, `bg-forge-surface` arriba). */
 .high-contrast .uiverse-loader {
   color: #ffff00;
 }

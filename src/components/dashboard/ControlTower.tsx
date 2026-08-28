@@ -19,17 +19,17 @@ import { PendingSalesRequestsSection } from '../orders/PendingSalesRequestsSecti
 import { cn } from '../ui/cn';
 
 const STATUS_COLORS: Record<string, string> = {
-  EN_TIEMPO: '#22c55e',
-  EN_RIESGO: '#eab308',
+  EN_TIEMPO: '#10b981',
+  EN_RIESGO: '#f59e0b',
   ATRASADO: '#f97316',
   DETENIDO: '#ef4444',
-  COMPLETADO: '#8a94a3',
+  COMPLETADO: '#94a3b8',
 };
 
 const DELAY_REASON_COLORS: Record<string, string> = {
   AVERIA_MAQUINARIA: '#ef4444',
   FALTA_INSUMOS: '#f97316',
-  FALTA_PERSONAL: '#eab308',
+  FALTA_PERSONAL: '#f59e0b',
   CORTE_LUZ: '#8b5cf6',
   ESPERA_INSPECCION: '#38bdf8',
 };
@@ -78,12 +78,12 @@ function useChartTheme(highContrast: boolean) {
         cursorFill: 'rgba(0, 0, 0, 0.12)',
       }
     : {
-        tooltipBg: '#14171c',
-        tooltipBorder: '#262b33',
+        tooltipBg: '#1e293b',
+        tooltipBorder: '#475569',
         tooltipText: '#f8fafc',
-        axisFill: '#8a94a3',
-        gridStroke: '#262b33',
-        cursorFill: '#1b1f26',
+        axisFill: '#94a3b8',
+        gridStroke: '#475569',
+        cursorFill: '#334155',
       };
 }
 
@@ -181,8 +181,8 @@ export function ControlTower() {
                 <defs>
                   {statusChartData.map((entry) => (
                     <radialGradient key={entry.status} id={`grad-${entry.status}`} cx="35%" cy="35%" r="70%">
-                      <stop offset="0%" stopColor={STATUS_COLORS[entry.status] ?? '#8a94a3'} stopOpacity={1} />
-                      <stop offset="100%" stopColor={STATUS_COLORS[entry.status] ?? '#8a94a3'} stopOpacity={0.65} />
+                      <stop offset="0%" stopColor={STATUS_COLORS[entry.status] ?? '#94a3b8'} stopOpacity={1} />
+                      <stop offset="100%" stopColor={STATUS_COLORS[entry.status] ?? '#94a3b8'} stopOpacity={0.65} />
                     </radialGradient>
                   ))}
                 </defs>
@@ -221,8 +221,8 @@ export function ControlTower() {
               <BarChart data={leadTimeData} margin={{ left: -20 }}>
                 <defs>
                   <linearGradient id="grad-leadtime" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ff6b1a" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#ff6b1a" stopOpacity={0.35} />
+                    <stop offset="0%" stopColor="var(--color-forge-accent)" stopOpacity={1} />
+                    <stop offset="100%" stopColor="var(--color-forge-accent)" stopOpacity={0.35} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} vertical={false} />
@@ -256,7 +256,7 @@ export function ControlTower() {
                   <PieChart>
                     <Pie data={delayChartData} dataKey="value" nameKey="name" innerRadius={48} outerRadius={80} paddingAngle={3} cornerRadius={4} animationDuration={700}>
                       {delayChartData.map((entry) => (
-                        <Cell key={entry.reason} fill={DELAY_REASON_COLORS[entry.reason] ?? '#8a94a3'} stroke="var(--color-forge-surface)" strokeWidth={2} />
+                        <Cell key={entry.reason} fill={DELAY_REASON_COLORS[entry.reason] ?? '#94a3b8'} stroke="var(--color-forge-surface)" strokeWidth={2} />
                       ))}
                     </Pie>
                     <Tooltip contentStyle={tooltipContentStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />

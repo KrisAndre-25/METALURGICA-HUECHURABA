@@ -1,4 +1,4 @@
-const NAMESPACE = 'forgeflow';
+const NAMESPACE = 'dmaix';
 
 function key(name: string): string {
   return `${NAMESPACE}:${name}`;
@@ -32,7 +32,7 @@ export const storageService = {
     }
   },
 
-  /** Borra todo lo persistido por la app (namespace `forgeflow:`), sin tocar otros datos del navegador. */
+  /** Borra todo lo persistido por la app (namespace `dmaix:`), sin tocar otros datos del navegador. */
   clearAll(): void {
     try {
       Object.keys(localStorage)

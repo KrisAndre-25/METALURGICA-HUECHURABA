@@ -7,7 +7,7 @@ import type { Language } from '../types/language';
  */
 const es = {
   login: {
-    appName: 'ForgeFlow',
+    appName: 'DMAIX',
     tagline: 'Industrial Control Tower — Metalúrgica Huechuraba',
     roleAdmin: 'Administración',
     roleOperator: 'Operador Taller',
@@ -198,7 +198,7 @@ const es = {
       pending: 'Pendiente',
       certifyText:
         'Este documento certifica que la estructura fabricada bajo la presente\norden fue inspeccionada en Control de Calidad y despachada conforme\na las especificaciones acordadas.',
-      generatedNote: 'Documento generado automáticamente por ForgeFlow.',
+      generatedNote: 'Documento generado automáticamente por DMAIX.',
     },
     priority: { BAJA: 'Baja', NORMAL: 'Normal', ALTA: 'Alta', URGENTE: 'Urgente' },
   },
@@ -245,7 +245,7 @@ const es = {
   },
   app: {
     tabTitle: {
-      home: 'ForgeFlow',
+      home: 'DMAIX',
       checklist: 'Checklist Rápido',
       search: 'Buscar OTs',
       dispatch: 'Mis Despachos y Entregas',
@@ -347,7 +347,7 @@ const es = {
 
 const en: typeof es = {
   login: {
-    appName: 'ForgeFlow',
+    appName: 'DMAIX',
     tagline: 'Industrial Control Tower — Huechuraba Metalworks',
     roleAdmin: 'Admin',
     roleOperator: 'Shop Operator',
@@ -538,7 +538,7 @@ const en: typeof es = {
       pending: 'Pending',
       certifyText:
         'This document certifies that the structure manufactured under this\norder was inspected in Quality Control and dispatched in accordance\nwith the agreed specifications.',
-      generatedNote: 'Document generated automatically by ForgeFlow.',
+      generatedNote: 'Document generated automatically by DMAIX.',
     },
     priority: { BAJA: 'Low', NORMAL: 'Normal', ALTA: 'High', URGENTE: 'Urgent' },
   },
@@ -585,7 +585,7 @@ const en: typeof es = {
   },
   app: {
     tabTitle: {
-      home: 'ForgeFlow',
+      home: 'DMAIX',
       checklist: 'Quick Checklist',
       search: 'Search Work Orders',
       dispatch: 'My Dispatches & Deliveries',

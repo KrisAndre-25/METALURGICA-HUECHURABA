@@ -7,8 +7,8 @@ const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 function colorFor(score: number): string {
-  if (score >= 80) return '#22c55e';
-  if (score >= 60) return '#eab308';
+  if (score >= 80) return '#10b981';
+  if (score >= 60) return '#f59e0b';
   if (score >= 35) return '#f97316';
   return '#ef4444';
 }

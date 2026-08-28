@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Factory, Handshake, Lock, Mail, ShieldCheck, Truck, Wrench } from 'lucide-react';
+import { Handshake, Lock, Mail, ShieldCheck, Truck, Wrench } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { Loader } from '../components/ui/Loader';
@@ -44,7 +44,7 @@ function AnimatedBackground() {
   );
 }
 
-/** Input con la estética Uiverse adaptada: fondo #171717, sombra interna "hundida", sin el Input del design system (esto es exclusivo de esta pantalla). */
+/** Input con la estética Uiverse adaptada: fondo forge-surface, sombra interna "hundida", sin el Input del design system (esto es exclusivo de esta pantalla). */
 function DarkField(props: {
   type: string;
   value: string;
@@ -63,7 +63,7 @@ function DarkField(props: {
         placeholder={props.placeholder}
         required={props.required}
         className={cn(
-          'h-13 w-full rounded-2xl border-none bg-[#171717] pl-11 pr-4 text-sm text-neutral-100 outline-none',
+          'h-13 w-full rounded-2xl border-none bg-forge-surface pl-11 pr-4 text-sm text-neutral-100 outline-none',
           'shadow-[inset_2px_5px_10px_rgb(5,5,5)] placeholder:text-neutral-600',
           'transition-shadow focus:shadow-[inset_2px_5px_10px_rgb(5,5,5),0_0_0_2px_var(--color-forge-accent)]',
         )}
@@ -132,12 +132,10 @@ export function Login() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative w-full max-w-sm rounded-[25px] bg-[#171717] p-6 shadow-2xl shadow-black/60"
+        className="relative w-full max-w-sm rounded-[25px] bg-forge-surface p-6 shadow-2xl shadow-black/60"
       >
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-forge-accent/15">
-            <Factory className="size-7 text-forge-accent" />
-          </div>
+          <img src="/icono_software.png" alt="DMAIX Logo" className="w-16 h-16 mb-4 object-contain" />
           <h1 className="text-lg font-bold text-neutral-100">{t.login.appName}</h1>
           <p className="text-xs text-neutral-500">{t.login.tagline}</p>
         </div>
@@ -155,7 +153,7 @@ export function Login() {
                 transition={{ duration: 0.15 }}
                 onClick={() => selectRole(role)}
                 className={cn(
-                  'flex flex-col items-center gap-1.5 rounded-2xl bg-[#171717] px-1.5 py-3 text-center transition-all',
+                  'flex flex-col items-center gap-1.5 rounded-2xl bg-forge-surface px-1.5 py-3 text-center transition-all',
                   'shadow-[inset_2px_5px_10px_rgb(5,5,5)]',
                   isActive ? 'ring-2 ring-forge-accent' : 'ring-1 ring-white/5',
                 )}

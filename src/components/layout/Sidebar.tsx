@@ -1,4 +1,4 @@
-import { Factory, LogOut, MessageSquareText } from 'lucide-react';
+import { LogOut, MessageSquareText } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,9 +24,10 @@ interface SidebarProps<T extends string> {
  * medio (única zona que crece/scrollea si hay muchos links), footer de
  * perfil+logout siempre pegado abajo.
  *
- * Lenguaje de color deliberado: el VERDE neón marca "dónde estás" (tab activo,
- * estado online) — el ÁMBAR marca "algo requiere tu atención" (mensajes nuevos
- * en el canal). El naranja de marca queda reservado para acciones/CTAs.
+ * Lenguaje de color deliberado: el VERDE (esmeralda) marca "dónde estás" (tab
+ * activo, estado online) — el ÁMBAR marca "algo requiere tu atención"
+ * (mensajes nuevos en el canal). El cian de marca queda reservado para
+ * acciones/CTAs.
  */
 export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }: SidebarProps<T>) {
   const { user, logout } = useAuth();
@@ -40,11 +41,9 @@ export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }
   return (
     <aside className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col border-r border-slate-800 bg-forge-surface sm:flex">
       <div className="flex shrink-0 items-center gap-2.5 border-b border-slate-800 px-5 py-5">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-forge-accent/15 shadow-[0_0_12px_rgba(255,107,26,0.25)]">
-          <Factory className="size-5 text-forge-accent" />
-        </div>
+        <img src="/icono_software.png" alt="DMAIX" className="w-8 h-8 object-contain mr-3 shrink-0 drop-shadow-[0_0_12px_rgba(6,182,212,0.35)]" />
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold leading-tight">{t.login.appName}</p>
+          <p className="truncate text-xl font-bold leading-tight text-white">{t.login.appName}</p>
           <p className="truncate text-[11px] leading-tight text-forge-steel">{t.sidebar.tagline}</p>
         </div>
       </div>
@@ -88,7 +87,7 @@ export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }
           <div className="mb-2 flex items-center gap-2.5 rounded-lg px-2 py-2">
             <div className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-forge-accent/15 text-xs font-bold text-forge-accent">
               {user.name.charAt(0)}
-              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-forge-surface bg-forge-ok shadow-[0_0_6px_rgba(34,197,94,0.8)]" />
+              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-forge-surface bg-forge-ok shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
             </div>
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold">{user.name}</p>
@@ -122,7 +121,7 @@ function NavItem({ icon: Icon, label, active, onClick }: { icon: LucideIcon; lab
       {active && (
         <motion.span
           layoutId="sidebar-active-bar"
-          className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-forge-ok shadow-[0_0_8px_rgba(34,197,94,0.9)]"
+          className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-forge-ok shadow-[0_0_8px_rgba(16,185,129,0.9)]"
           transition={{ type: 'spring', stiffness: 400, damping: 32 }}
         />
       )}
