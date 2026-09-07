@@ -7,6 +7,7 @@ import { ToastProvider } from './components/ui/Toast';
 import { ProtectedLayout } from './components/layout/ProtectedLayout';
 import type { NavTab } from './components/layout/BottomNavigation';
 import { Login } from './pages/Login';
+import { Home } from './pages/Home';
 import { ControlTower } from './components/dashboard/ControlTower';
 import { FastChecklist } from './components/checklist/FastChecklist';
 import { OrderCardTouch } from './components/orders/OrderCardTouch';
@@ -228,6 +229,15 @@ function AuthenticatedApp() {
         { id: 'profile', label: t.app.navLabels.profile, icon: UserIcon },
       ];
     }
+    // VENDEDOR no avanza, gestiona ni despacha OTs — su única acción es la Solicitud de
+    // Venta (ver VendedorHomeView). El Checklist Rápido queda reservado a ADMIN/OPERATOR.
+    if (user?.role === 'VENDEDOR') {
+      return [
+        { id: 'home', label: t.app.navLabels.dashboard, icon: LayoutDashboard },
+        { id: 'search', label: t.app.navLabels.search, icon: Search },
+        { id: 'profile', label: t.app.navLabels.profile, icon: UserIcon },
+      ];
+    }
     return [
       { id: 'home', label: user?.role === 'ADMIN' ? t.app.navLabels.controlTower : t.app.navLabels.dashboard, icon: LayoutDashboard },
       { id: 'checklist', label: t.app.navLabels.checklist, icon: ListChecks },
@@ -257,9 +267,18 @@ function AuthenticatedApp() {
   );
 }
 
+/**
+ * Sin usuario autenticado, la landing pública (`Home`) es la puerta de
+ * entrada — `Login` solo se muestra tras pulsar "Iniciar Sesión". No hay
+ * router en el proyecto: es un simple toggle de estado, igual que el resto
+ * de la navegación de la app.
+ */
 function Gate() {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <AuthenticatedApp /> : <Login />;
+  const [showLogin, setShowLogin] = useState(false);
+
+  if (isAuthenticated) return <AuthenticatedApp />;
+  return showLogin ? <Login onBack={() => setShowLogin(false)} /> : <Home onLogin={() => setShowLogin(true)} />;
 }
 
 function App() {

@@ -202,3 +202,77 @@ body {
     animation-duration: 2.5s;
   }
 }
+
+/* Marquees de la landing (BentoGrid): dos filas desfasadas de la misma
+   duración que se ven fluidas cuando una va en reversa. translate a -50%
+   porque cada fila renderiza la lista de items duplicada una vez. */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes marquee-reverse {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.animate-marquee {
+  animation: marquee 22s linear infinite;
+}
+.animate-marquee-reverse {
+  animation: marquee-reverse 22s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-marquee-reverse {
+    animation: none;
+  }
+}
+
+/* AnimatedBeamBackground: el trazo punteado "viaja" a lo largo del path
+   moviendo su offset — mismo path duplicado como guía estática detrás. */
+@keyframes beam-flow {
+  to { stroke-dashoffset: -460; }
+}
+.animate-beam-flow {
+  animation: beam-flow 3.4s linear infinite;
+}
+.animate-beam-flow-delayed {
+  animation: beam-flow 3.4s linear infinite;
+  animation-delay: 1.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-beam-flow,
+  .animate-beam-flow-delayed {
+    animation: none;
+  }
+}
+
+/* Marquee3DSection: columnas verticales infinitas — cada columna duplica su
+   lista de tarjetas una vez, por eso el loop es -50% del alto total. */
+@keyframes marquee-vertical {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+@keyframes marquee-vertical-reverse {
+  from { transform: translateY(-50%); }
+  to { transform: translateY(0); }
+}
+.animate-marquee-vertical {
+  animation-name: marquee-vertical;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.animate-marquee-vertical-reverse {
+  animation-name: marquee-vertical-reverse;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-vertical,
+  .animate-marquee-vertical-reverse {
+    animation: none;
+  }
+}
+

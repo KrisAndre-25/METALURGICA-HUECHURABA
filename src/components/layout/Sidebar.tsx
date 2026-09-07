@@ -41,7 +41,7 @@ export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }
   return (
     <aside className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col border-r border-slate-800 bg-forge-surface sm:flex">
       <div className="flex shrink-0 items-center gap-2.5 border-b border-slate-800 px-5 py-5">
-        <img src="/icono_software.png" alt="DMAIX" className="w-8 h-8 object-contain mr-3 shrink-0 drop-shadow-[0_0_12px_rgba(6,182,212,0.35)]" />
+        <img src="/icono_software.png" alt="DMAIX" className="w-8 h-8 rounded-full object-cover mr-3 shrink-0 drop-shadow-[0_0_12px_rgba(6,182,212,0.35)]" />
         <div className="min-w-0">
           <p className="truncate text-xl font-bold leading-tight text-white">{t.login.appName}</p>
           <p className="truncate text-[11px] leading-tight text-forge-steel">{t.sidebar.tagline}</p>

@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Handshake, Lock, Mail, ShieldCheck, Truck, Wrench } from 'lucide-react';
+import { ArrowLeft, Handshake, Lock, Mail, ShieldCheck, Truck, Wrench } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { Loader } from '../components/ui/Loader';
@@ -17,26 +17,30 @@ interface QuickRole {
 
 const DEMO_PASSWORD = 'demo1234';
 
-/** Fondo animado liviano: grilla de micro-dots a la deriva + dos glows metálicos, solo `transform`/`opacity` (GPU, 60fps en mobile). */
+/**
+ * Fondo animado: mismo tratamiento azul eléctrico + negro que el Hero de la
+ * landing (`Home.tsx`) — grilla de micro-dots a la deriva + dos glows, para
+ * que la transición Landing → Login no salte de paleta.
+ */
 function AnimatedBackground() {
   return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden bg-forge-bg">
+    <div className="pointer-events-none fixed inset-0 overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/40 via-slate-950 to-black">
       <motion.div
-        className="absolute -inset-y-12 -inset-x-12 opacity-40"
+        className="absolute -inset-y-12 -inset-x-12 opacity-30"
         style={{
-          backgroundImage: 'radial-gradient(circle, var(--color-forge-border) 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(circle, rgba(59,130,246,0.25) 1px, transparent 1px)',
           backgroundSize: '28px 28px',
         }}
         animate={{ x: [0, -28, 0], y: [0, -28, 0] }}
         transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
       />
       <motion.div
-        className="absolute -left-24 -top-24 size-[26rem] rounded-full bg-forge-accent/20 blur-[100px]"
+        className="absolute -left-24 -top-24 size-[26rem] rounded-full bg-blue-600/20 blur-[100px]"
         animate={{ x: [0, 40, 0], y: [0, 30, 0], opacity: [0.5, 0.8, 0.5] }}
         transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="absolute -bottom-32 -right-16 size-[28rem] rounded-full bg-forge-steel/10 blur-[110px]"
+        className="absolute -bottom-32 -right-16 size-[28rem] rounded-full bg-cyan-500/10 blur-[110px]"
         animate={{ x: [0, -30, 0], y: [0, -20, 0], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
       />
@@ -72,7 +76,7 @@ function DarkField(props: {
   );
 }
 
-export function Login() {
+export function Login({ onBack }: { onBack?: () => void }) {
   const { login } = useAuth();
   const { showToast } = useToast();
   const { t } = useUiPrefs();
@@ -128,6 +132,16 @@ export function Login() {
     <div className="relative flex min-h-svh items-center justify-center overflow-x-hidden px-4 py-10">
       <AnimatedBackground />
 
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-neutral-400 transition-colors hover:text-neutral-100 sm:left-6 sm:top-6"
+        >
+          <ArrowLeft className="size-3.5" /> Volver al inicio
+        </button>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -135,7 +149,7 @@ export function Login() {
         className="relative w-full max-w-sm rounded-[25px] bg-forge-surface p-6 shadow-2xl shadow-black/60"
       >
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <img src="/icono_software.png" alt="DMAIX Logo" className="w-16 h-16 mb-4 object-contain" />
+          <img src="/icono_software.png" alt="DMAIX Logo" className="w-16 h-16 mb-4 rounded-full object-cover" />
           <h1 className="text-lg font-bold text-neutral-100">{t.login.appName}</h1>
           <p className="text-xs text-neutral-500">{t.login.tagline}</p>
         </div>
