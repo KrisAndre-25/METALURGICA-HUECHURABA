@@ -63,7 +63,7 @@ export const DELAY_REASONS = [
 
 export type DelayReason = (typeof DELAY_REASONS)[number];
 
-export type CorrectiveAction = 'BALANCEAR_LINEA' | 'HORAS_EXTRA';
+export type CorrectiveAction = 'BALANCEAR_LINEA';
 
 /** Especificaciones técnicas del producto a fabricar dentro de una OT. */
 export interface ProductSpecs {

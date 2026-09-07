@@ -232,8 +232,13 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const getOrderById = (id: string) => orders.find((order) => order.id === id);
 
-  /** Avanza la OT a la siguiente estación del pipeline, o la marca COMPLETADO si sale de Despacho. */
+  /**
+   * Avanza la OT a la siguiente estación del pipeline, o la marca COMPLETADO si sale de Despacho.
+   * VENDEDOR no gestiona ni despacha OTs — su única acción es la Solicitud de Venta
+   * (ver `createSalesRequest`). Barrera verificada aquí, no solo ocultando el botón en la UI.
+   */
   const advanceStation = (id: string, actor: string, actorRole: UserRole, note?: string) => {
+    if (actorRole === 'VENDEDOR') return;
     setOrders((prev) => {
       const next = persistOrders(prev.map((order) => {
         if (order.id !== id) return order;
@@ -287,8 +292,12 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     })));
   };
 
-  /** Detiene la OT con un motivo estructurado (análisis de causa raíz) en vez de una nota libre. */
+  /**
+   * Detiene la OT con un motivo estructurado (análisis de causa raíz) en vez de una nota libre.
+   * VENDEDOR no gestiona OTs — ver nota en `advanceStation`.
+   */
   const holdOrder = (id: string, actor: string, actorRole: UserRole, reason: DelayReason, note?: string) => {
+    if (actorRole === 'VENDEDOR') return;
     setOrders((prev) => persistOrders(prev.map((order) => {
       if (order.id !== id) return order;
       const withEv = withEvent(order, {
@@ -304,8 +313,13 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     })));
   };
 
-  /** Reanuda una OT detenida; opcionalmente registra la acción correctiva aplicada. */
+  /**
+   * Reanuda una OT detenida; `note` lleva la Acción Correctiva aplicada (obligatoria en la UI,
+   * ver RootCauseModal) y `correctiveAction` es la acción automática opcional de balanceo de línea.
+   * VENDEDOR no gestiona OTs — ver nota en `advanceStation`.
+   */
   const resumeOrder = (id: string, actor: string, actorRole: UserRole, correctiveAction?: CorrectiveAction, note?: string) => {
+    if (actorRole === 'VENDEDOR') return;
     setOrders((prev) => persistOrders(prev.map((order) => {
       if (order.id !== id) return order;
       const withEv = withEvent(order, {

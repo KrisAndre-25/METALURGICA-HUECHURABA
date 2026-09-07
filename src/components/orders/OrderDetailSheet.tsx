@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, OctagonX, PlayCircle, UserCog } from 'lucide-react';
+import { ArrowRight, MapPin, OctagonX, PlayCircle, UserCog } from 'lucide-react';
 import type { WorkOrder } from '../../types/order';
 import { STATIONS } from '../../types/order';
 import { formatDate, formatEventType, formatRelativeTime, formatRole, formatStation, formatTons } from '../../utils/formatters';
@@ -65,6 +65,18 @@ export function OrderDetailSheet({ order, onClose }: { order: WorkOrder | null; 
           <div className="mb-4 flex flex-wrap gap-2">
             <OrderStatusBadge status={order.status} />
             <OrderPriorityBadge priority={order.priority} />
+          </div>
+
+          {/* Ubicación exacta en tiempo real: responde directamente a "dónde está físicamente
+              esta OT ahora mismo", el problema central que la Torre de Control existe para resolver. */}
+          <div className="mb-5 flex items-center gap-3 rounded-xl border border-forge-accent/30 bg-forge-accent/10 p-3.5">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-forge-accent/15">
+              <MapPin className="size-4.5 text-forge-accent" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-forge-steel">{t.orders.detailSheet.currentLocation}</p>
+              <p className="truncate text-base font-bold text-slate-100">{formatStation(order.currentStation, language)}</p>
+            </div>
           </div>
 
           <dl className="mb-5 grid grid-cols-2 gap-3 text-sm">

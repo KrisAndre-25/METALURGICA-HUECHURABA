@@ -33,6 +33,11 @@ export function daysBetween(fromIso: string, toIso: string): number {
   return Math.round(ms / (24 * 60 * 60 * 1000));
 }
 
+/** Horas transcurridas desde un timestamp ISO hasta ahora — duración acumulada de una parada activa. */
+export function hoursSince(iso: string): number {
+  return (Date.now() - new Date(iso).getTime()) / (60 * 60 * 1000);
+}
+
 const STATUS_LABELS: Record<Language, Record<string, string>> = {
   es: {
     EN_TIEMPO: 'En tiempo',

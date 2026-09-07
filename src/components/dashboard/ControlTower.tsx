@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AlertOctagon, Banknote, Gauge, ListChecks, OctagonX, PackageCheck, Radio, Route, Truck } from 'lucide-react';
+import { AlertOctagon, Banknote, FileSpreadsheet, Gauge, ListChecks, OctagonX, PackageCheck, Radio, Route, Truck } from 'lucide-react';
 import type { Station } from '../../types/order';
 import { useOrders } from '../../hooks/useOrders';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,6 +16,7 @@ import { Card, CardTitle } from '../ui/Card';
 import { OrderCardTouch } from '../orders/OrderCardTouch';
 import { OrderDetailSheet } from '../orders/OrderDetailSheet';
 import { PendingSalesRequestsSection } from '../orders/PendingSalesRequestsSection';
+import { StopReportsModal } from './StopReportsModal';
 import { cn } from '../ui/cn';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -105,6 +106,7 @@ export function ControlTower() {
   const [activeStation, setActiveStation] = useState<Station | null>(null);
   // Solo el ID: el sheet siempre debe reflejar la OT viva, no una foto tomada al abrirlo.
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [stopReportsOpen, setStopReportsOpen] = useState(false);
   const selectedOrder = allOrders.find((o) => o.id === selectedOrderId) ?? null;
 
   const insights = useDiagnosticEngine(allOrders, language);
@@ -243,7 +245,16 @@ export function ControlTower() {
       </Section>
 
       <Section>
-        <SectionHeading icon={OctagonX}>{t.controlTower.sectionReports}</SectionHeading>
+        <div className="mb-2.5 flex items-center justify-between">
+          <SectionHeading icon={OctagonX}>{t.controlTower.sectionReports}</SectionHeading>
+          <button
+            type="button"
+            onClick={() => setStopReportsOpen(true)}
+            className="flex items-center gap-1.5 text-[11px] font-medium text-forge-accent hover:underline"
+          >
+            <FileSpreadsheet className="size-3.5" /> {t.controlTower.viewStopReports}
+          </button>
+        </div>
         {delayChartData.length === 0 ? (
           <Card>
             <p className="py-4 text-center text-sm text-forge-steel">{t.controlTower.reportsEmpty}</p>
@@ -355,6 +366,7 @@ export function ControlTower() {
       </Section>
 
       <OrderDetailSheet order={selectedOrder} onClose={() => setSelectedOrderId(null)} />
+      <StopReportsModal open={stopReportsOpen} onClose={() => setStopReportsOpen(false)} />
     </motion.div>
   );
 }

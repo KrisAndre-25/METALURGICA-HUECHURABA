@@ -1,5 +1,5 @@
-import { STATIONS, type DelayReason, type PurchaseOrder, type Station, type WorkOrder } from '../types/order';
-import type { HealthScore, PlantKpis, StationLoad, StatusSummary } from '../types/kpi';
+import { DELAY_REASONS, STATIONS, type DelayReason, type PurchaseOrder, type Station, type WorkOrder } from '../types/order';
+import type { DowntimeRecord, HealthScore, PlantKpis, StationLoad, StatusSummary } from '../types/kpi';
 import type { Language } from '../types/language';
 import { STATION_META } from '../data/mockStations';
 import { daysBetween } from './formatters';
@@ -117,4 +117,60 @@ export function summarizeDelayReasons(orders: WorkOrder[]): DelayReasonSummary[]
     }
   }
   return Array.from(counts.entries()).map(([reason, count]) => ({ reason, count }));
+}
+
+/**
+ * Empareja cada evento HOLD (con motivo) con su RESUME correspondiente — el siguiente
+ * RESUME en el historial de la misma OT — para reconstruir cada parada como un registro
+ * completo: estación, inicio, término (o "en curso" si sigue detenida) y duración exacta.
+ */
+export function getDowntimeRecords(orders: WorkOrder[]): DowntimeRecord[] {
+  const records: DowntimeRecord[] = [];
+  for (const order of orders) {
+    const { history } = order;
+    for (let i = 0; i < history.length; i++) {
+      const event = history[i];
+      if (event.type !== 'HOLD' || !event.delayReason) continue;
+      const resumeEvent = history.slice(i + 1).find((e) => e.type === 'RESUME');
+      const endTime = resumeEvent?.timestamp ?? null;
+      const endMs = endTime ? new Date(endTime).getTime() : Date.now();
+      const hours = Math.max((endMs - new Date(event.timestamp).getTime()) / (60 * 60 * 1000), 0);
+      records.push({
+        orderId: order.id,
+        station: event.station,
+        reason: event.delayReason,
+        startTime: event.timestamp,
+        endTime,
+        hours,
+        correctiveAction: resumeEvent?.note ?? null,
+      });
+    }
+  }
+  return records.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+}
+
+export interface DowntimeHoursByStation {
+  station: Station;
+  hours: number;
+}
+
+/** KPI consolidado: total de horas perdidas por estación, para el Informe de Paradas. */
+export function summarizeDowntimeHoursByStation(records: DowntimeRecord[]): DowntimeHoursByStation[] {
+  return STATIONS.map((station) => ({
+    station,
+    hours: records.filter((r) => r.station === station).reduce((sum, r) => sum + r.hours, 0),
+  })).filter((s) => s.hours > 0);
+}
+
+export interface DowntimeHoursByReason {
+  reason: DelayReason;
+  hours: number;
+}
+
+/** KPI consolidado: total de horas perdidas por causa, para el Informe de Paradas. */
+export function summarizeDowntimeHoursByReason(records: DowntimeRecord[]): DowntimeHoursByReason[] {
+  return DELAY_REASONS.map((reason) => ({
+    reason,
+    hours: records.filter((r) => r.reason === reason).reduce((sum, r) => sum + r.hours, 0),
+  })).filter((r) => r.hours > 0);
 }

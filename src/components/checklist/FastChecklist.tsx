@@ -21,6 +21,11 @@ export function FastChecklist() {
   const [batchOpen, setBatchOpen] = useState(false);
   const [advancingId, setAdvancingId] = useState<string | null>(null);
 
+  // VENDEDOR no gestiona ni despacha OTs — barrera defensiva además de que ya no
+  // tiene esta pestaña en la navegación (ver App.tsx). advanceStation también la
+  // rechaza a nivel de OrderContext.
+  if (user?.role === 'VENDEDOR') return null;
+
   const active = orders
     .filter((o) => o.status !== 'COMPLETADO')
     .filter((o) => !user?.station || o.currentStation === user.station);

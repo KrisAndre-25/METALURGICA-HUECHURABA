@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { OctagonX, PlayCircle, Users, Zap } from 'lucide-react';
+import { OctagonX, PlayCircle, Users } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Textarea } from '../ui/Input';
@@ -8,7 +8,7 @@ import { useUiPrefs } from '../../contexts/UiPrefsContext';
 import { useOrders } from '../../hooks/useOrders';
 import { useToast } from '../ui/Toast';
 import { calculateStationLoad } from '../../utils/kpiCalculators';
-import { formatDelayReason, formatStation } from '../../utils/formatters';
+import { formatDelayReason, formatHours, formatStation, hoursSince } from '../../utils/formatters';
 import { DELAY_REASONS, type CorrectiveAction, type DelayReason, type WorkOrder } from '../../types/order';
 import { cn } from '../ui/cn';
 
@@ -21,7 +21,8 @@ interface RootCauseModalProps {
 /**
  * Análisis de Causa Raíz para paradas: sustituye la nota libre por un registro
  * estructurado. En modo Detener pide uno de los 5 motivos predefinidos; en modo
- * Reanudar ofrece las dos acciones correctivas (balancear línea u horas extra).
+ * Reanudar exige describir la Acción Correctiva aplicada (obligatoria) y ofrece,
+ * como ayuda opcional, balancear la línea reasignando un operario disponible.
  */
 export function RootCauseModal({ order, open, onClose }: RootCauseModalProps) {
   const { user, users, updateWorker } = useAuth();
@@ -36,6 +37,7 @@ export function RootCauseModal({ order, open, onClose }: RootCauseModalProps) {
 
   const isResuming = order.status === 'DETENIDO';
   const lastHold = [...order.history].reverse().find((e) => e.type === 'HOLD');
+  const elapsedDowntimeHours = lastHold ? hoursSince(lastHold.timestamp) : 0;
 
   const stationLoad = calculateStationLoad(allOrders);
   const bottleneck = [...stationLoad].sort((a, b) => b.orderCount - a.orderCount)[0];
@@ -83,50 +85,41 @@ export function RootCauseModal({ order, open, onClose }: RootCauseModalProps) {
               <p className="text-xs text-forge-steel">{t.rootCause.originalReason}</p>
               <p className="text-sm font-medium text-slate-100">{formatDelayReason(lastHold.delayReason, language)}</p>
               {lastHold.note && <p className="mt-1 text-xs text-forge-warn">{lastHold.note}</p>}
+              <p className="mt-2 text-xs font-semibold text-forge-warn">{t.rootCause.downtimeSoFar(formatHours(elapsedDowntimeHours, language))}</p>
             </div>
           )}
 
           <div>
             <p className="mb-2 text-xs font-medium text-forge-steel">{t.rootCause.correctiveActionLabel}</p>
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setCorrectiveAction(correctiveAction === 'BALANCEAR_LINEA' ? null : 'BALANCEAR_LINEA')}
-                disabled={!bottleneckStation || !availableOperator}
-                className={cn(
-                  'flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40',
-                  correctiveAction === 'BALANCEAR_LINEA' ? 'border-forge-accent bg-forge-accent/10' : 'border-forge-border hover:border-forge-accent/40',
-                )}
-              >
-                <Users className="mt-0.5 size-4 shrink-0 text-forge-accent" />
-                <span>
-                  <span className="block text-sm font-medium text-slate-100">{t.rootCause.balanceLine}</span>
-                  <span className="block text-xs text-forge-steel">
-                    {bottleneckStation && availableOperator
-                      ? t.rootCause.balanceLineHint(formatStation(bottleneckStation, language))
-                      : t.rootCause.balanceLineNoOperator}
-                  </span>
+            <button
+              type="button"
+              onClick={() => setCorrectiveAction(correctiveAction === 'BALANCEAR_LINEA' ? null : 'BALANCEAR_LINEA')}
+              disabled={!bottleneckStation || !availableOperator}
+              className={cn(
+                'flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40',
+                correctiveAction === 'BALANCEAR_LINEA' ? 'border-forge-accent bg-forge-accent/10' : 'border-forge-border hover:border-forge-accent/40',
+              )}
+            >
+              <Users className="mt-0.5 size-4 shrink-0 text-forge-accent" />
+              <span>
+                <span className="block text-sm font-medium text-slate-100">{t.rootCause.balanceLine}</span>
+                <span className="block text-xs text-forge-steel">
+                  {bottleneckStation && availableOperator
+                    ? t.rootCause.balanceLineHint(formatStation(bottleneckStation, language))
+                    : t.rootCause.balanceLineNoOperator}
                 </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setCorrectiveAction(correctiveAction === 'HORAS_EXTRA' ? null : 'HORAS_EXTRA')}
-                className={cn(
-                  'flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors',
-                  correctiveAction === 'HORAS_EXTRA' ? 'border-forge-accent bg-forge-accent/10' : 'border-forge-border hover:border-forge-accent/40',
-                )}
-              >
-                <Zap className="mt-0.5 size-4 shrink-0 text-forge-accent" />
-                <span>
-                  <span className="block text-sm font-medium text-slate-100">{t.rootCause.overtimeAction}</span>
-                  <span className="block text-xs text-forge-steel">{t.rootCause.overtimeHint}</span>
-                </span>
-              </button>
-            </div>
+              </span>
+            </button>
           </div>
 
-          <Button fullWidth size="lg" icon={<PlayCircle className="size-4" />} onClick={handleResume}>
+          <Textarea
+            label={t.rootCause.correctiveNoteLabel}
+            placeholder={t.rootCause.correctiveNotePlaceholder}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+
+          <Button fullWidth size="lg" icon={<PlayCircle className="size-4" />} onClick={handleResume} disabled={!note.trim()}>
             {t.rootCause.confirmResume}
           </Button>
         </div>

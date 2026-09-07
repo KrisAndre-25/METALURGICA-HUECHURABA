@@ -1,4 +1,4 @@
-import type { OrderStatus, Station } from './order';
+import type { DelayReason, OrderStatus, Station } from './order';
 
 /** Resumen agregado de estado de todas las OT activas, para tarjetas del dashboard. */
 export interface StatusSummary {
@@ -30,6 +30,20 @@ export interface PlantKpis {
   stoppedOrders: number;
   activeAmountUF: number;
   plantHealthScore: number;
+}
+
+/** Un registro de parada: empareja el evento HOLD con su RESUME (si ya ocurrió), para el informe de paradas. */
+export interface DowntimeRecord {
+  orderId: string;
+  station: Station;
+  reason: DelayReason;
+  startTime: string;
+  /** `null` mientras la OT sigue detenida — el reporte la marca "En curso". */
+  endTime: string | null;
+  /** Horas transcurridas hasta `endTime`, o hasta ahora si sigue detenida. */
+  hours: number;
+  /** Nota de Acción Correctiva registrada al reanudar — `null` si aún no se reanuda. */
+  correctiveAction: string | null;
 }
 
 export type DiagnosticSeverity = 'info' | 'warning' | 'critical';

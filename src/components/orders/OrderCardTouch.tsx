@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, MapPin } from 'lucide-react';
 import type { WorkOrder } from '../../types/order';
 import { formatDate, formatStation } from '../../utils/formatters';
 import { useUiPrefs } from '../../contexts/UiPrefsContext';
@@ -31,7 +31,9 @@ export function OrderCardTouch({ order, onOpen }: { order: WorkOrder; onOpen: (o
 
       <div className="mt-3">
         <div className="mb-1 flex items-center justify-between text-xs text-forge-steel">
-          <span>{formatStation(order.currentStation, language)}</span>
+          <span className="flex items-center gap-1 font-semibold text-forge-accent">
+            <MapPin className="size-3.5" /> {formatStation(order.currentStation, language)}
+          </span>
           <span>{order.progressPercentage}%</span>
         </div>
         <ProgressBar percentage={order.progressPercentage} status={order.status} />
