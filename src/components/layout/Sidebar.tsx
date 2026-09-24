@@ -8,6 +8,7 @@ import { formatRole } from '../../utils/formatters';
 import { ContrastToggle } from '../ui/ContrastToggle';
 import { LanguageToggle } from '../ui/LanguageToggle';
 import { cn } from '../ui/cn';
+import { CountBadge } from '../ui/CountBadge';
 import type { NavTab } from './BottomNavigation';
 
 interface SidebarProps<T extends string> {
@@ -55,9 +56,9 @@ export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }
 
       <nav className="flex-1 overflow-y-auto p-3">
         <ul className="space-y-1">
-          {tabs.map(({ id, label, icon: Icon }) => (
+          {tabs.map(({ id, label, icon: Icon, badge }) => (
             <li key={id}>
-              <NavItem icon={Icon} label={label} active={active === id} onClick={() => onChange(id)} />
+              <NavItem icon={Icon} label={label} badge={badge} active={active === id} onClick={() => onChange(id)} />
             </li>
           ))}
         </ul>
@@ -108,7 +109,7 @@ export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }
   );
 }
 
-function NavItem({ icon: Icon, label, active, onClick }: { icon: LucideIcon; label: string; active: boolean; onClick: () => void }) {
+function NavItem({ icon: Icon, label, badge, active, onClick }: { icon: LucideIcon; label: string; badge?: number; active: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -126,7 +127,8 @@ function NavItem({ icon: Icon, label, active, onClick }: { icon: LucideIcon; lab
         />
       )}
       <Icon className="size-4 shrink-0" />
-      <span className="truncate">{label}</span>
+      <span className="flex-1 truncate text-left">{label}</span>
+      {!!badge && <CountBadge count={badge} />}
     </button>
   );
 }

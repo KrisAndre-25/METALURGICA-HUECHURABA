@@ -1,11 +1,14 @@
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '../ui/cn';
+import { CountBadge } from '../ui/CountBadge';
 
 export interface NavTab<T extends string> {
   id: T;
   label: string;
   icon: LucideIcon;
+  /** Contador de notificación (ej. solicitudes pendientes); se oculta si es 0 o no viene. */
+  badge?: number;
 }
 
 interface BottomNavigationProps<T extends string> {
@@ -19,7 +22,7 @@ export function BottomNavigation<T extends string>({ tabs, active, onChange }: B
   return (
     <nav data-testid="bottom-nav" className="fixed inset-x-0 bottom-0 z-40 border-t border-forge-border bg-forge-surface/95 backdrop-blur sm:hidden">
       <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)]">
-        {tabs.map(({ id, label, icon: Icon }) => {
+        {tabs.map(({ id, label, icon: Icon, badge }) => {
           const isActive = active === id;
           return (
             <button
@@ -35,7 +38,10 @@ export function BottomNavigation<T extends string>({ tabs, active, onChange }: B
                   transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                 />
               )}
-              <Icon className={cn('size-5', isActive ? 'text-forge-accent' : 'text-forge-steel')} />
+              <span className="relative">
+                <Icon className={cn('size-5', isActive ? 'text-forge-accent' : 'text-forge-steel')} />
+                {!!badge && <CountBadge count={badge} className="absolute -right-2.5 -top-1.5 min-w-4 px-1" />}
+              </span>
               <span className={isActive ? 'text-forge-accent' : 'text-forge-steel'}>{label}</span>
             </button>
           );

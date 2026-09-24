@@ -39,6 +39,12 @@ export function SalesRequestList({ requests }: { requests: SalesRequest[] }) {
                 <OrderPriorityBadge priority={request.priority} />
               </div>
               <p className="mt-1 text-[11px] text-forge-steel">{t.salesRequest.requestedAt}: {formatDate(request.requestedAt, language)}</p>
+              {request.status === 'CARGADA' && request.workOrderId && (
+                <p className="mt-1 text-[11px] text-forge-ok">{t.salesRequest.workOrder}: <span className="font-semibold">{request.workOrderId}</span></p>
+              )}
+              {request.status === 'RECHAZADA' && request.reviewNote && (
+                <p className="mt-1 text-[11px] text-forge-stopped">{t.salesRequest.rejectReason}: {request.reviewNote}</p>
+              )}
             </li>
           ))}
         </ul>

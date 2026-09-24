@@ -49,6 +49,9 @@ export interface SalesRequest {
   requestedAt: string;
   status: SalesRequestStatus;
   purchaseOrderId?: string;
+  /** OT generada al aprobar la solicitud (estado `CARGADA`). */
+  workOrderId?: string;
+  /** Motivo de rechazo registrado por Administración (estado `RECHAZADA`). */
   reviewNote?: string;
 }
 
@@ -97,6 +100,8 @@ export interface WorkOrder {
   purchaseOrderId: string;
   clientName: string;
   projectName: string;
+  /** Descripción técnica ajustada por Administración al aprobar la Solicitud de Venta. */
+  description?: string;
   productSpecs: ProductSpecs;
   orderDate: string;
   promisedDate: string;

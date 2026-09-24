@@ -19,7 +19,8 @@ import { storageService } from '../services/storageService';
 const ORDERS_KEY = 'orders.v4';
 const PURCHASE_ORDERS_KEY = 'purchaseOrders.v1';
 const MESSAGES_KEY = 'messages.v1';
-const SALES_REQUESTS_KEY = 'salesRequests.v1';
+// v2: agrega `workOrderId` y trae solicitudes semilla para la vista de Solicitudes Pendientes.
+const SALES_REQUESTS_KEY = 'salesRequests.v2';
 
 const VALID_STATUSES = new Set(['EN_TIEMPO', 'EN_RIESGO', 'ATRASADO', 'DETENIDO', 'COMPLETADO']);
 const VALID_PRIORITIES = new Set(['BAJA', 'NORMAL', 'ALTA', 'URGENTE']);
@@ -79,6 +80,11 @@ export interface NewOrderInput {
   productSpecs: ProductSpecs;
   promisedDate: string;
   priority: Priority;
+  description?: string;
+  /** Estación donde ingresa la OT; por defecto `ORDEN_COMPRA` (flujo completo). */
+  initialStation?: Station;
+  /** Responsable de taller; por defecto quien crea la OT. */
+  assignedOperator?: string;
 }
 
 export interface ClientProfile {
@@ -109,10 +115,20 @@ export interface NewSalesRequestInput {
   priority: Priority;
 }
 
+/**
+ * Aprobación de una Solicitud de Venta. Los campos opcionales son los ajustes
+ * de Administración; si faltan, se usan los valores que envió el Vendedor.
+ */
 export interface LoadPurchaseOrderInput {
   salesRequestId: string;
   productSpecs: ProductSpecs;
   promisedDate: string;
+  projectName?: string;
+  description?: string;
+  finalAmountUF?: number;
+  priority?: Priority;
+  initialStation?: Station;
+  assignedOperator?: string;
 }
 
 interface OrderContextValue {
@@ -178,7 +194,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const [salesRequests, setSalesRequests] = useState<SalesRequest[]>(() => {
     const stored = storageService.get<SalesRequest[] | null>(SALES_REQUESTS_KEY, null);
-    return isValidSalesRequests(stored) ? stored : [];
+    return isValidSalesRequests(stored) ? stored : mockDataService.getInitialSalesRequests();
   });
 
   // Sincronización reactiva entre pestañas/ventanas: si otra pestaña (ej. un OPERATOR
@@ -337,22 +353,29 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const createOrder = (input: NewOrderInput, actor: string, actorRole: UserRole): WorkOrder => {
     const now = new Date().toISOString();
-    const sequence = orders.length + 1042;
+    // Folio correlativo por año: OT-2026-001, OT-2026-002… (las OT semilla usan OT-1042…).
+    const yearPrefix = `OT-${new Date().getFullYear()}-`;
+    const sequence = orders.filter((o) => o.id.startsWith(yearPrefix)).length + 1;
+    const id = `${yearPrefix}${String(sequence).padStart(3, '0')}`;
+    const station = input.initialStation ?? 'ORDEN_COMPRA';
+    const stationIndex = STATIONS.indexOf(station);
     const newOrder: WorkOrder = {
-      id: `OT-${sequence}`,
+      id,
       purchaseOrderId: input.purchaseOrderId,
       clientName: input.clientName,
       projectName: input.projectName,
+      description: input.description,
       productSpecs: input.productSpecs,
       orderDate: now,
       promisedDate: input.promisedDate,
       priority: input.priority,
-      currentStation: 'ORDEN_COMPRA',
+      currentStation: station,
       status: 'EN_TIEMPO',
-      progressPercentage: 5,
-      assignedOperator: actor,
+      // Mismo cálculo que `advanceStation` para una OT que llega a esta estación.
+      progressPercentage: stationIndex === 0 ? 5 : Math.min(Math.round((stationIndex / STATIONS.length) * 100 + 5), 99),
+      assignedOperator: input.assignedOperator ?? actor,
       lastMovementAt: now,
-      history: [{ id: `${sequence}-ev-1`, type: 'STATION_ENTER', station: 'ORDEN_COMPRA', timestamp: now, actor, actorRole }],
+      history: [{ id: `${id}-ev-1`, type: 'STATION_ENTER', station, timestamp: now, actor, actorRole }],
     };
     setOrders((prev) => persistOrders([newOrder, ...prev]));
     setPurchaseOrders((prev) => persistPurchaseOrders(prev.map((po) =>
@@ -397,7 +420,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       clientName: request.clientName,
       clientRut: request.clientRut,
       issuedDate: now,
-      totalAmountUF: request.estimatedAmountUF,
+      totalAmountUF: input.finalAmountUF ?? request.estimatedAmountUF,
       status: 'RECIBIDA',
       assignedVendedor: request.requestedBy,
     };
@@ -407,17 +430,20 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       {
         purchaseOrderId: newPurchaseOrder.id,
         clientName: request.clientName,
-        projectName: request.projectName,
+        projectName: input.projectName?.trim() || request.projectName,
+        description: input.description?.trim() || request.description,
         productSpecs: input.productSpecs,
         promisedDate: input.promisedDate,
-        priority: request.priority,
+        priority: input.priority ?? request.priority,
+        initialStation: input.initialStation,
+        assignedOperator: input.assignedOperator,
       },
       actor,
       actorRole,
     );
 
     setSalesRequests((prev) => persistSalesRequests(prev.map((r) =>
-      r.id === request.id ? { ...r, status: 'CARGADA', purchaseOrderId: newPurchaseOrder.id } : r,
+      r.id === request.id ? { ...r, status: 'CARGADA', purchaseOrderId: newPurchaseOrder.id, workOrderId: newOrder.id } : r,
     )));
 
     return newOrder;

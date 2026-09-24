@@ -4,7 +4,6 @@ import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer,
 import { AlertOctagon, Banknote, FileSpreadsheet, Gauge, ListChecks, OctagonX, PackageCheck, Radio, Route, Truck } from 'lucide-react';
 import type { Station } from '../../types/order';
 import { useOrders } from '../../hooks/useOrders';
-import { useAuth } from '../../contexts/AuthContext';
 import { useUiPrefs } from '../../contexts/UiPrefsContext';
 import { useDiagnosticEngine } from '../../hooks/useDiagnosticEngine';
 import { calculatePlantKpis, calculateStationLoad, summarizeByStatus, summarizeDelayReasons } from '../../utils/kpiCalculators';
@@ -15,7 +14,6 @@ import { DiagnosticBanner } from './DiagnosticBanner';
 import { Card, CardTitle } from '../ui/Card';
 import { OrderCardTouch } from '../orders/OrderCardTouch';
 import { OrderDetailSheet } from '../orders/OrderDetailSheet';
-import { PendingSalesRequestsSection } from '../orders/PendingSalesRequestsSection';
 import { StopReportsModal } from './StopReportsModal';
 import { cn } from '../ui/cn';
 import { useChartTheme } from './chartTheme';
@@ -60,8 +58,7 @@ function SectionHeading({ icon: Icon, children, count }: { icon: typeof Truck; c
 }
 
 export function ControlTower() {
-  const { allOrders, purchaseOrders, salesRequests, shipments } = useOrders();
-  const { user } = useAuth();
+  const { allOrders, purchaseOrders, shipments } = useOrders();
   const { t, language, highContrast } = useUiPrefs();
   const chartTheme = useChartTheme(highContrast);
   const tooltipContentStyle = {
@@ -133,12 +130,6 @@ export function ControlTower() {
       <Section>
         <DiagnosticBanner insights={insights} />
       </Section>
-
-      {user?.role === 'ADMIN' && (
-        <Section>
-          <PendingSalesRequestsSection requests={salesRequests} />
-        </Section>
-      )}
 
       <Section>
         <SectionHeading icon={Route}>{t.controlTower.sectionPipeline}</SectionHeading>

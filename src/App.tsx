@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { BarChart3, LayoutDashboard, ListChecks, LogOut, Pencil, RotateCcw, Search, Truck, User as UserIcon } from 'lucide-react';
+import { BarChart3, ClipboardList, LayoutDashboard, ListChecks, LogOut, Pencil, RotateCcw, Search, Truck, User as UserIcon } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OrderProvider } from './contexts/OrderContext';
 import { UiPrefsProvider, useUiPrefs } from './contexts/UiPrefsContext';
@@ -18,6 +18,7 @@ import { ClientMacroStatusCard } from './components/orders/ClientMacroStatusCard
 import { DispatchCard } from './components/orders/DispatchCard';
 import { SalesRequestForm } from './components/orders/SalesRequestForm';
 import { SalesRequestList } from './components/orders/SalesRequestList';
+import { SolicitudesPendientes } from './components/orders/SolicitudesPendientes';
 import { EditProfileSheet } from './components/profile/EditProfileSheet';
 import { WorkerManagement } from './components/profile/WorkerManagement';
 import { Input } from './components/ui/Input';
@@ -27,7 +28,7 @@ import { useOrders } from './hooks/useOrders';
 import { storageService } from './services/storageService';
 import { formatRole, formatUF } from './utils/formatters';
 
-type Tab = 'home' | 'analytics' | 'checklist' | 'search' | 'dispatch' | 'profile';
+type Tab = 'home' | 'analytics' | 'requests' | 'checklist' | 'search' | 'dispatch' | 'profile';
 
 function ClientHomeView() {
   const { user } = useAuth();
@@ -220,8 +221,10 @@ function ProfileView() {
 
 function AuthenticatedApp() {
   const { user } = useAuth();
+  const { salesRequests } = useOrders();
   const { t } = useUiPrefs();
   const [tab, setTab] = useState<Tab>('home');
+  const pendingRequests = salesRequests.filter((r) => r.status === 'PENDIENTE').length;
 
   const tabs = useMemo<NavTab<Tab>[]>(() => {
     if (user?.role === 'CLIENT') {
@@ -244,17 +247,22 @@ function AuthenticatedApp() {
       { id: 'home', label: user?.role === 'ADMIN' ? t.app.navLabels.controlTower : t.app.navLabels.dashboard, icon: LayoutDashboard },
       // Analítica BI & Estudio de Tiempos: exclusivo de Administración.
       ...(user?.role === 'ADMIN' ? [{ id: 'analytics' as const, label: t.app.navLabels.analytics, icon: BarChart3 }] : []),
+      // Solicitudes Pendientes: bandeja de aprobación de ventas, exclusiva de Administración.
+      ...(user?.role === 'ADMIN'
+        ? [{ id: 'requests' as const, label: t.app.navLabels.requests, icon: ClipboardList, badge: pendingRequests }]
+        : []),
       { id: 'checklist', label: t.app.navLabels.checklist, icon: ListChecks },
       { id: 'search', label: t.app.navLabels.search, icon: Search },
       { id: 'profile', label: t.app.navLabels.profile, icon: UserIcon },
     ];
-  }, [user, t]);
+  }, [user, t, pendingRequests]);
 
   const activeTab = tabs.some((tb) => tb.id === tab) ? tab : 'home';
 
   const tabTitle: Record<Tab, string> = {
     home: t.app.tabTitle.home,
     analytics: t.app.tabTitle.analytics,
+    requests: t.app.tabTitle.requests,
     checklist: t.app.tabTitle.checklist,
     search: t.app.tabTitle.search,
     dispatch: t.app.tabTitle.dispatch,
@@ -265,6 +273,7 @@ function AuthenticatedApp() {
     <ProtectedLayout tabs={tabs} active={activeTab} onChange={setTab} title={tabTitle[activeTab]}>
       {activeTab === 'home' && <HomeView />}
       {activeTab === 'analytics' && <BiAnalyticsView />}
+      {activeTab === 'requests' && <SolicitudesPendientes />}
       {activeTab === 'checklist' && <FastChecklist />}
       {activeTab === 'search' && <SearchView />}
       {activeTab === 'dispatch' && <ClientDispatchView />}

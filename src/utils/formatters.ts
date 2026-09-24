@@ -167,8 +167,8 @@ export function formatRole(role: string, language: Language = 'es'): string {
 }
 
 const PRIORITY_LABELS: Record<Language, Record<string, string>> = {
-  es: { BAJA: 'Baja', NORMAL: 'Normal', ALTA: 'Alta', URGENTE: 'Urgente' },
-  en: { BAJA: 'Low', NORMAL: 'Normal', ALTA: 'High', URGENTE: 'Urgent' },
+  es: { BAJA: 'Baja', NORMAL: 'Media', ALTA: 'Alta', URGENTE: 'Crítica' },
+  en: { BAJA: 'Low', NORMAL: 'Medium', ALTA: 'High', URGENTE: 'Critical' },
 };
 
 export function formatPriority(priority: string, language: Language = 'es'): string {
