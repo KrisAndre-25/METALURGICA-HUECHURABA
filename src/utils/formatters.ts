@@ -24,6 +24,19 @@ export function formatHours(hours: number | null, language: Language = 'es'): st
   return `${(hours / 24).toFixed(1)} d`;
 }
 
+/**
+ * Horas de turno del estudio de tiempos — siempre en horas (a diferencia de
+ * `formatHours`, que pasa a días sobre 24 h): "160 h ociosas" no se lee como días.
+ */
+export function formatShiftHours(hours: number, language: Language = 'es'): string {
+  return `${ufFormatter(language).format(hours)} h`;
+}
+
+/** "septiembre de 2026" / "September 2026" — nombre del mes de una ventana del BI. */
+export function formatMonth(date: Date, language: Language = 'es'): string {
+  return new Intl.DateTimeFormat(language === 'en' ? 'en-US' : 'es-CL', { month: 'long', year: 'numeric' }).format(date);
+}
+
 export function formatTons(tons: number): string {
   return `${tons.toFixed(1)} ton`;
 }

@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react';
-import { LayoutDashboard, ListChecks, LogOut, Pencil, RotateCcw, Search, Truck, User as UserIcon } from 'lucide-react';
+import { BarChart3, LayoutDashboard, ListChecks, LogOut, Pencil, RotateCcw, Search, Truck, User as UserIcon } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OrderProvider } from './contexts/OrderContext';
 import { UiPrefsProvider, useUiPrefs } from './contexts/UiPrefsContext';
+import { BiProvider } from './contexts/BiContext';
 import { ToastProvider } from './components/ui/Toast';
 import { ProtectedLayout } from './components/layout/ProtectedLayout';
 import type { NavTab } from './components/layout/BottomNavigation';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
 import { ControlTower } from './components/dashboard/ControlTower';
+import { BiAnalyticsView } from './components/analytics/BiAnalyticsView';
 import { FastChecklist } from './components/checklist/FastChecklist';
 import { OrderCardTouch } from './components/orders/OrderCardTouch';
 import { OrderDetailSheet } from './components/orders/OrderDetailSheet';
@@ -25,7 +27,7 @@ import { useOrders } from './hooks/useOrders';
 import { storageService } from './services/storageService';
 import { formatRole, formatUF } from './utils/formatters';
 
-type Tab = 'home' | 'checklist' | 'search' | 'dispatch' | 'profile';
+type Tab = 'home' | 'analytics' | 'checklist' | 'search' | 'dispatch' | 'profile';
 
 function ClientHomeView() {
   const { user } = useAuth();
@@ -240,6 +242,8 @@ function AuthenticatedApp() {
     }
     return [
       { id: 'home', label: user?.role === 'ADMIN' ? t.app.navLabels.controlTower : t.app.navLabels.dashboard, icon: LayoutDashboard },
+      // Analítica BI & Estudio de Tiempos: exclusivo de Administración.
+      ...(user?.role === 'ADMIN' ? [{ id: 'analytics' as const, label: t.app.navLabels.analytics, icon: BarChart3 }] : []),
       { id: 'checklist', label: t.app.navLabels.checklist, icon: ListChecks },
       { id: 'search', label: t.app.navLabels.search, icon: Search },
       { id: 'profile', label: t.app.navLabels.profile, icon: UserIcon },
@@ -250,6 +254,7 @@ function AuthenticatedApp() {
 
   const tabTitle: Record<Tab, string> = {
     home: t.app.tabTitle.home,
+    analytics: t.app.tabTitle.analytics,
     checklist: t.app.tabTitle.checklist,
     search: t.app.tabTitle.search,
     dispatch: t.app.tabTitle.dispatch,
@@ -259,6 +264,7 @@ function AuthenticatedApp() {
   return (
     <ProtectedLayout tabs={tabs} active={activeTab} onChange={setTab} title={tabTitle[activeTab]}>
       {activeTab === 'home' && <HomeView />}
+      {activeTab === 'analytics' && <BiAnalyticsView />}
       {activeTab === 'checklist' && <FastChecklist />}
       {activeTab === 'search' && <SearchView />}
       {activeTab === 'dispatch' && <ClientDispatchView />}
@@ -290,7 +296,9 @@ function App() {
             ve los datos más recientes sin depender de un refetch al iniciar sesión. */}
         <OrderProvider>
           <ToastProvider>
-            <Gate />
+            <BiProvider>
+              <Gate />
+            </BiProvider>
           </ToastProvider>
         </OrderProvider>
       </AuthProvider>
