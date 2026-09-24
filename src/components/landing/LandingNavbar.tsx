@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { IconLogin2, IconMenu2, IconX } from '@tabler/icons-react';
+import { IconHelpCircle, IconLogin2, IconMenu2, IconX } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLandingLanguage } from '../../contexts/LandingLanguageContext';
 
@@ -26,8 +26,8 @@ const LINKS: Record<'es' | 'en', NavLink[]> = {
 };
 
 const TEXT = {
-  es: { skip: 'Saltar al contenido principal', login: 'Iniciar Sesión', loginShort: 'Ingresar', demo: 'Solicitar Demo', open: 'Abrir menú', close: 'Cerrar menú' },
-  en: { skip: 'Skip to main content', login: 'Log In', loginShort: 'Log In', demo: 'Request Demo', open: 'Open menu', close: 'Close menu' },
+  es: { skip: 'Saltar al contenido principal', login: 'Iniciar Sesión', loginShort: 'Ingresar', guide: 'Guía de Uso', demo: 'Solicitar Demo', open: 'Abrir menú', close: 'Cerrar menú' },
+  en: { skip: 'Skip to main content', login: 'Log In', loginShort: 'Log In', guide: 'User Guide', demo: 'Request Demo', open: 'Open menu', close: 'Close menu' },
 };
 
 const SECONDARY_BUTTON_CLASSES =
@@ -46,8 +46,13 @@ const MOBILE_LOGIN_CLASSES =
   'group relative flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-cyan-500/70 to-emerald-500/70 p-px ' +
   'shadow-[0_0_14px_rgba(6,182,212,0.25)] transition-shadow active:scale-95 hover:shadow-[0_0_18px_rgba(16,185,129,0.35)]';
 
+const GUIDE_BUTTON_CLASSES =
+  'flex items-center gap-1.5 rounded-xl text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-cyan-300';
+
 interface LandingNavbarProps {
   onLogin: () => void;
+  /** Abre la Guía de Uso (OnboardingWizard). */
+  onOpenGuide: () => void;
 }
 
 /**
@@ -55,7 +60,7 @@ interface LandingNavbarProps {
  * fuerte) al hacer scroll — reimplementada con Framer Motion `useScroll` en
  * vez del paquete `@/components/ui/resizable-navbar` original.
  */
-export function LandingNavbar({ onLogin }: LandingNavbarProps) {
+export function LandingNavbar({ onLogin, onOpenGuide }: LandingNavbarProps) {
   const { language } = useLandingLanguage();
   const links = LINKS[language];
   const t = TEXT[language];
@@ -107,6 +112,11 @@ export function LandingNavbar({ onLogin }: LandingNavbarProps) {
           </ul>
 
           <div className="hidden items-center gap-2.5 lg:flex">
+            {/* Solo icono entre lg y xl: con el texto no caben los 5 links en ~1024–1280px. */}
+            <button type="button" onClick={onOpenGuide} aria-label={t.guide} title={t.guide} className={`${GUIDE_BUTTON_CLASSES} px-2 py-2 xl:px-3`}>
+              <IconHelpCircle className="size-5 xl:size-[18px]" stroke={1.8} aria-hidden />
+              <span className="hidden xl:inline">{t.guide}</span>
+            </button>
             <button type="button" onClick={onLogin} className={SECONDARY_BUTTON_CLASSES}>
               {t.login}
             </button>
@@ -115,7 +125,10 @@ export function LandingNavbar({ onLogin }: LandingNavbarProps) {
             </a>
           </div>
 
-          <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex items-center gap-1.5 min-[360px]:gap-2 lg:hidden">
+            <button type="button" onClick={onOpenGuide} aria-label={t.guide} title={t.guide} className={`${GUIDE_BUTTON_CLASSES} size-9 justify-center`}>
+              <IconHelpCircle className="size-[22px]" stroke={1.8} aria-hidden />
+            </button>
             <button type="button" onClick={onLogin} aria-label={t.login} className={MOBILE_LOGIN_CLASSES}>
               <span className="flex h-full items-center gap-1.5 rounded-full bg-slate-950/90 px-2.5 text-sm font-semibold text-cyan-300 transition-colors group-hover:text-white min-[360px]:px-3.5">
                 <IconLogin2 className="size-[18px]" stroke={2} aria-hidden />

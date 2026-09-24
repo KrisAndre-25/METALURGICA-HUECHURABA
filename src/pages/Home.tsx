@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { IconRocket } from '@tabler/icons-react';
 import { LandingNavbar } from '../components/landing/LandingNavbar';
@@ -16,6 +17,7 @@ import { BackgroundBoxes } from '../components/landing/BackgroundBoxes';
 import { SquigglyText } from '../components/landing/SquigglyText';
 import { SignupFormDemo } from '../components/landing/SignupFormDemo';
 import { LandingFooter } from '../components/landing/LandingFooter';
+import { OnboardingWizard, shouldShowWizard } from '../components/OnboardingWizard';
 import { LandingLanguageProvider, useLandingLanguage, type LandingLanguage } from '../contexts/LandingLanguageContext';
 import { cn } from '../components/ui/cn';
 
@@ -220,6 +222,8 @@ interface HomeProps {
 function HomeContent({ onLogin }: HomeProps) {
   const { language } = useLandingLanguage();
   const c = CONTENT[language];
+  // Guía de Uso: se abre sola en la primera visita (ver `dmaix_wizard_completed`); la navbar la reabre.
+  const [guideOpen, setGuideOpen] = useState(shouldShowWizard);
 
   // Kristopher y Yojan usan la tarjeta con efecto Lens (ver TeamCards.tsx), fuera del
   // LayoutGrid — sus 2 tarjetas quedan intactas abajo, ahora a ancho completo.
@@ -246,7 +250,8 @@ function HomeContent({ onLogin }: HomeProps) {
 
   return (
     <div className="h-screen snap-y snap-mandatory overflow-y-scroll scroll-smooth bg-black text-slate-100">
-      <LandingNavbar onLogin={onLogin} />
+      <LandingNavbar onLogin={onLogin} onOpenGuide={() => setGuideOpen(true)} />
+      <OnboardingWizard open={guideOpen} onClose={() => setGuideOpen(false)} context="landing" onFinish={onLogin} language={language} />
 
       <main id="main-content">
         {/* SECCIÓN 1 — Pro Hero */}

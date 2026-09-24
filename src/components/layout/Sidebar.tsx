@@ -1,4 +1,4 @@
-import { LogOut, MessageSquareText } from 'lucide-react';
+import { CircleHelp, LogOut, MessageSquareText } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,6 +16,7 @@ interface SidebarProps<T extends string> {
   active: T;
   onChange: (tab: T) => void;
   onOpenChat: () => void;
+  onOpenGuide: () => void;
 }
 
 /**
@@ -30,7 +31,7 @@ interface SidebarProps<T extends string> {
  * (mensajes nuevos en el canal). El cian de marca queda reservado para
  * acciones/CTAs.
  */
-export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }: SidebarProps<T>) {
+export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat, onOpenGuide }: SidebarProps<T>) {
   const { user, logout } = useAuth();
   const { t, language } = useUiPrefs();
   const { messages } = useChat();
@@ -63,8 +64,16 @@ export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }
           ))}
         </ul>
 
-        {showChat && (
-          <div className="mt-4 border-t border-slate-800 pt-4">
+        <div className="mt-4 space-y-1 border-t border-slate-800 pt-4">
+          <button
+            type="button"
+            onClick={onOpenGuide}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-forge-steel transition-colors hover:bg-forge-surface-2 hover:text-forge-accent"
+          >
+            <CircleHelp className="size-4 shrink-0" />
+            <span className="flex-1 truncate text-left">{t.onboarding.openGuide}</span>
+          </button>
+          {showChat && (
             <button
               type="button"
               onClick={onOpenChat}
@@ -79,8 +88,8 @@ export function Sidebar<T extends string>({ tabs, active, onChange, onOpenChat }
                 </span>
               )}
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </nav>
 
       {user && (

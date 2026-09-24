@@ -13,6 +13,8 @@ interface ProtectedLayoutProps<T extends string> {
   active: T;
   onChange: (tab: T) => void;
   title: string;
+  /** Reabre la Guía de Uso (OnboardingWizard). */
+  onOpenGuide: () => void;
   children: ReactNode;
 }
 
@@ -22,7 +24,7 @@ interface ProtectedLayoutProps<T extends string> {
  * (`sm+`), sidebar lateral clásico con el mismo canal accesible desde ahí.
  * El gate de autenticación en sí vive en App.tsx.
  */
-export function ProtectedLayout<T extends string>({ tabs, active, onChange, title, children }: ProtectedLayoutProps<T>) {
+export function ProtectedLayout<T extends string>({ tabs, active, onChange, title, onOpenGuide, children }: ProtectedLayoutProps<T>) {
   const [chatOpen, setChatOpen] = useState(false);
   const { messages } = useChat();
   const { user } = useAuth();
@@ -33,9 +35,9 @@ export function ProtectedLayout<T extends string>({ tabs, active, onChange, titl
 
   return (
     <div className="flex min-h-svh bg-forge-bg">
-      <Sidebar tabs={tabs} active={active} onChange={onChange} onOpenChat={() => setChatOpen(true)} />
+      <Sidebar tabs={tabs} active={active} onChange={onChange} onOpenChat={() => setChatOpen(true)} onOpenGuide={onOpenGuide} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileHeader title={title} />
+        <MobileHeader title={title} onOpenGuide={onOpenGuide} />
         <main className="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 sm:pb-6">{children}</main>
       </div>
       <BottomNavigation tabs={tabs} active={active} onChange={onChange} />

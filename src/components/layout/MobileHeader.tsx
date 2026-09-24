@@ -1,12 +1,13 @@
+import { CircleHelp } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUiPrefs } from '../../contexts/UiPrefsContext';
 import { formatRole } from '../../utils/formatters';
 import { ContrastToggle } from '../ui/ContrastToggle';
 import { LanguageToggle } from '../ui/LanguageToggle';
 
-export function MobileHeader({ title }: { title: string }) {
+export function MobileHeader({ title, onOpenGuide }: { title: string; onOpenGuide: () => void }) {
   const { user } = useAuth();
-  const { language } = useUiPrefs();
+  const { language, t } = useUiPrefs();
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-forge-border bg-forge-surface/95 px-4 py-3 backdrop-blur sm:hidden">
@@ -25,6 +26,15 @@ export function MobileHeader({ title }: { title: string }) {
             {user.name.charAt(0)}
           </div>
         )}
+        <button
+          type="button"
+          onClick={onOpenGuide}
+          aria-label={t.onboarding.openGuide}
+          title={t.onboarding.openGuide}
+          className="flex size-8 items-center justify-center rounded-full text-forge-accent ring-1 ring-forge-accent/40 transition-colors hover:bg-forge-accent/15 active:scale-95"
+        >
+          <CircleHelp className="size-[18px]" />
+        </button>
       </div>
     </header>
   );

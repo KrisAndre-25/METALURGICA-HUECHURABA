@@ -19,6 +19,7 @@ import { DispatchCard } from './components/orders/DispatchCard';
 import { SalesRequestForm } from './components/orders/SalesRequestForm';
 import { SalesRequestList } from './components/orders/SalesRequestList';
 import { SolicitudesPendientes } from './components/orders/SolicitudesPendientes';
+import { OnboardingWizard, shouldShowWizard } from './components/OnboardingWizard';
 import { EditProfileSheet } from './components/profile/EditProfileSheet';
 import { WorkerManagement } from './components/profile/WorkerManagement';
 import { Input } from './components/ui/Input';
@@ -224,6 +225,8 @@ function AuthenticatedApp() {
   const { salesRequests } = useOrders();
   const { t } = useUiPrefs();
   const [tab, setTab] = useState<Tab>('home');
+  // Guía de Uso: se abre sola mientras `dmaix_wizard_completed` no sea 'true'; el header la reabre.
+  const [guideOpen, setGuideOpen] = useState(shouldShowWizard);
   const pendingRequests = salesRequests.filter((r) => r.status === 'PENDIENTE').length;
 
   const tabs = useMemo<NavTab<Tab>[]>(() => {
@@ -270,7 +273,7 @@ function AuthenticatedApp() {
   };
 
   return (
-    <ProtectedLayout tabs={tabs} active={activeTab} onChange={setTab} title={tabTitle[activeTab]}>
+    <ProtectedLayout tabs={tabs} active={activeTab} onChange={setTab} title={tabTitle[activeTab]} onOpenGuide={() => setGuideOpen(true)}>
       {activeTab === 'home' && <HomeView />}
       {activeTab === 'analytics' && <BiAnalyticsView />}
       {activeTab === 'requests' && <SolicitudesPendientes />}
@@ -278,6 +281,7 @@ function AuthenticatedApp() {
       {activeTab === 'search' && <SearchView />}
       {activeTab === 'dispatch' && <ClientDispatchView />}
       {activeTab === 'profile' && <ProfileView />}
+      <OnboardingWizard open={guideOpen} onClose={() => setGuideOpen(false)} />
     </ProtectedLayout>
   );
 }
