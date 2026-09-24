@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { IconMenu2, IconX } from '@tabler/icons-react';
+import { IconLogin2, IconMenu2, IconX } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLandingLanguage } from '../../contexts/LandingLanguageContext';
 
@@ -26,8 +26,8 @@ const LINKS: Record<'es' | 'en', NavLink[]> = {
 };
 
 const TEXT = {
-  es: { skip: 'Saltar al contenido principal', login: 'Iniciar Sesión', demo: 'Solicitar Demo', open: 'Abrir menú', close: 'Cerrar menú' },
-  en: { skip: 'Skip to main content', login: 'Log In', demo: 'Request Demo', open: 'Open menu', close: 'Close menu' },
+  es: { skip: 'Saltar al contenido principal', login: 'Iniciar Sesión', loginShort: 'Ingresar', demo: 'Solicitar Demo', open: 'Abrir menú', close: 'Cerrar menú' },
+  en: { skip: 'Skip to main content', login: 'Log In', loginShort: 'Log In', demo: 'Request Demo', open: 'Open menu', close: 'Close menu' },
 };
 
 const SECONDARY_BUTTON_CLASSES =
@@ -37,6 +37,14 @@ const SECONDARY_BUTTON_CLASSES =
 const PRIMARY_BUTTON_CLASSES =
   'transform rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 px-5 py-2 text-sm font-semibold text-white ' +
   'shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all hover:-translate-y-0.5 hover:from-blue-500 hover:to-emerald-400 hover:shadow-[0_0_25px_rgba(16,185,129,0.4)]';
+
+/**
+ * Acceso directo en mobile: pill compacto con borde en degradado de marca
+ * (cian → esmeralda) y glow sutil. Bajo 360px queda solo el icono.
+ */
+const MOBILE_LOGIN_CLASSES =
+  'group relative flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-cyan-500/70 to-emerald-500/70 p-px ' +
+  'shadow-[0_0_14px_rgba(6,182,212,0.25)] transition-shadow active:scale-95 hover:shadow-[0_0_18px_rgba(16,185,129,0.35)]';
 
 interface LandingNavbarProps {
   onLogin: () => void;
@@ -108,6 +116,12 @@ export function LandingNavbar({ onLogin }: LandingNavbarProps) {
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">
+            <button type="button" onClick={onLogin} aria-label={t.login} className={MOBILE_LOGIN_CLASSES}>
+              <span className="flex h-full items-center gap-1.5 rounded-full bg-slate-950/90 px-2.5 text-sm font-semibold text-cyan-300 transition-colors group-hover:text-white min-[360px]:px-3.5">
+                <IconLogin2 className="size-[18px]" stroke={2} aria-hidden />
+                <span className="hidden min-[360px]:inline">{t.loginShort}</span>
+              </span>
+            </button>
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
@@ -142,13 +156,6 @@ export function LandingNavbar({ onLogin }: LandingNavbarProps) {
                   </a>
                 ))}
                 <div className="mt-2 flex flex-col gap-2 border-t border-blue-900/30 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => { setMobileOpen(false); onLogin(); }}
-                    className={`${SECONDARY_BUTTON_CLASSES} text-center`}
-                  >
-                    {t.login}
-                  </button>
                   <a href="#subscribe" onClick={() => setMobileOpen(false)} className={`${PRIMARY_BUTTON_CLASSES} text-center`}>
                     {t.demo}
                   </a>
