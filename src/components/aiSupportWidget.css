@@ -1,0 +1,223 @@
+/*
+ * Widget flotante de Soporte IA — diseño Uiverse (navy #021624, borde cian
+ * #00c1d5). En escritorio es la píldora "Soporte IA"; en teléfono queda solo el
+ * ícono, subido por encima de las barras inferiores (ver .is-app / .is-landing).
+ */
+.ai-support {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  /* Bajo los modales (guía z-80, carrusel z-90) y sobre los toasts (z-60). */
+  z-index: 75;
+}
+
+@media (max-width: 1023px) {
+  /* Landing: sobre la barra de secciones flotante de abajo. */
+  .ai-support.is-landing {
+    right: 16px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 639px) {
+  /* App: sobre la barra inferior y el botón del Canal Taller. */
+  .ai-support.is-app {
+    right: 16px;
+    bottom: calc(160px + env(safe-area-inset-bottom));
+  }
+}
+
+.ai-support .support-trigger-btn {
+  background: rgb(2, 22, 36);
+  color: #ffffff;
+  padding: 0.8rem 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border: 1px solid #00c1d5;
+  border-radius: 50px;
+  box-shadow: 0px 4px 20px rgba(0, 193, 213, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+
+.ai-support .support-trigger-btn:hover,
+.ai-support .support-trigger-btn:focus-visible {
+  outline: none;
+  transform: scale(1.05);
+  background-color: #00c1d5;
+  color: #021624;
+}
+
+.ai-support .support-trigger-btn:hover svg path,
+.ai-support .support-trigger-btn:focus-visible svg path {
+  stroke: #021624;
+}
+
+/* Teléfono: solo el ícono, botón redondo. */
+@media (max-width: 639px) {
+  .ai-support .support-trigger-btn {
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    justify-content: center;
+  }
+  .ai-support .support-trigger-label {
+    display: none;
+  }
+}
+
+.ai-support .chat-window {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  width: min(330px, calc(100vw - 32px));
+  height: min(440px, calc(100svh - 240px));
+  background-color: rgb(2, 22, 36);
+  border: 1px solid #00c1d5;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  transform-origin: bottom right;
+  animation: ai-support-in 0.18s ease-out;
+}
+
+@keyframes ai-support-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+
+.ai-support .chat-header {
+  background: #01121f;
+  padding: 12px;
+  border-bottom: 1px solid #00c1d5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.ai-support .online-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+}
+
+.ai-support .close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 4px;
+}
+
+.ai-support .chat-messages {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-support .message-bubble {
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.ai-support .message-bubble.assistant {
+  background-color: #06283d;
+  color: #e2e8f0;
+  align-self: flex-start;
+  border: 1px solid rgba(0, 193, 213, 0.3);
+}
+
+.ai-support .message-bubble.user {
+  background-color: #00c1d5;
+  color: #021624;
+  align-self: flex-end;
+  font-weight: 500;
+}
+
+.ai-support .message-bubble.loading {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.ai-support .chat-input-form {
+  display: flex;
+  padding: 8px;
+  border-top: 1px solid rgba(0, 193, 213, 0.3);
+  background: #01121f;
+}
+
+.ai-support .chat-input-form input {
+  flex: 1;
+  min-width: 0;
+  background: #021624;
+  border: 1px solid #00c1d5;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.ai-support .chat-input-form input:focus {
+  box-shadow: 0 0 0 2px rgba(0, 193, 213, 0.35);
+}
+
+.ai-support .chat-input-form button {
+  background: #00c1d5;
+  color: #021624;
+  border: none;
+  padding: 6px 12px;
+  margin-left: 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.ai-support .chat-input-form button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.ai-support .contact-quick-links {
+  display: flex;
+  justify-content: space-around;
+  padding: 6px;
+  background: #000;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-support .chat-window {
+    animation: none;
+  }
+}

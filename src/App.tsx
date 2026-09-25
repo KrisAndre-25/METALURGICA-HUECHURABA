@@ -20,6 +20,7 @@ import { SalesRequestForm } from './components/orders/SalesRequestForm';
 import { SalesRequestList } from './components/orders/SalesRequestList';
 import { SolicitudesPendientes } from './components/orders/SolicitudesPendientes';
 import { OnboardingWizard, shouldShowWizard } from './components/OnboardingWizard';
+import { AISupportWidget } from './components/AISupportWidget';
 import { EditProfileSheet } from './components/profile/EditProfileSheet';
 import { WorkerManagement } from './components/profile/WorkerManagement';
 import { Input } from './components/ui/Input';
@@ -311,6 +312,8 @@ function App() {
           <ToastProvider>
             <BiProvider>
               <Gate />
+              {/* Soporte IA: una sola instancia para landing, login y dashboard. */}
+              <AISupportWidget />
             </BiProvider>
           </ToastProvider>
         </OrderProvider>
