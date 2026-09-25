@@ -148,7 +148,7 @@ function PhoneMockup({ imageName, badgeText, description, highlightArea = 'top',
         <div className="absolute top-[6px] z-30 flex h-3.5 w-12 items-center justify-center rounded-full border border-white/5 bg-black" />
       </div>
 
-      {description && <p className="max-w-[190px] text-center text-[11px] font-medium leading-tight text-cyan-400">{description}</p>}
+      {description && <p className="max-w-[190px] text-center text-[11px] font-medium leading-tight text-cyan-400 max-sm:hidden">{description}</p>}
     </div>
   );
 }
@@ -228,7 +228,7 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
             role="dialog"
             aria-modal="true"
             aria-labelledby="onboarding-title"
-            className="relative flex max-h-[94svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-cyan-500/20 bg-[#0F172A] shadow-[0_0_60px_rgba(6,182,212,0.15)] sm:rounded-3xl"
+            className="relative flex max-h-[88svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[28px] border border-b-0 border-cyan-500/20 bg-[#0F172A] shadow-[0_-12px_50px_rgba(6,182,212,0.12)] sm:max-h-[94svh] sm:rounded-3xl sm:border-b sm:shadow-[0_0_60px_rgba(6,182,212,0.15)]"
             initial={{ opacity: 0, y: 40, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.98 }}
@@ -243,27 +243,31 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
               />
             </div>
 
-            <header className="flex items-center justify-between gap-3 px-5 pt-4 sm:px-7">
+            <div className="flex justify-center pt-2 sm:hidden" aria-hidden>
+              <span className="h-1 w-10 rounded-full bg-slate-700" />
+            </div>
+
+            <header className="flex items-center justify-between gap-3 px-4 pt-2 sm:px-7 sm:pt-4">
               <div className="flex items-center gap-2.5">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-cyan-500/15 text-[#06B6D4]">
-                  <CircleHelp className="size-[18px]" />
+                <span className="flex size-7 items-center justify-center rounded-lg bg-cyan-500/15 text-[#06B6D4] sm:size-8 sm:rounded-xl">
+                  <CircleHelp className="size-4 sm:size-[18px]" />
                 </span>
                 <div>
-                  <p className="text-sm font-bold text-white">{tr.title}</p>
-                  <p className="text-[11px] text-slate-400">{tr.step(index + 1, total)}</p>
+                  <p className="text-[13px] font-bold leading-tight text-white sm:text-sm">{tr.title}</p>
+                  <p className="text-[11px] leading-tight text-slate-400">{tr.step(index + 1, total)}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={close}
                 aria-label={tr.close}
-                className="flex size-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white sm:size-9"
               >
                 <X className="size-5" />
               </button>
             </header>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-7">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3 sm:px-7 sm:py-4">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={index}
@@ -271,10 +275,10 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -24 }}
                   transition={{ duration: 0.2 }}
-                  className={cn('grid items-center gap-5', current.secondary ? 'sm:gap-6' : 'sm:grid-cols-[auto_1fr] sm:gap-8')}
+                  className={cn('grid items-center gap-3 sm:gap-5', current.secondary ? 'sm:gap-6' : 'sm:grid-cols-[auto_1fr] sm:gap-8')}
                 >
-                  {/* Con dos mockups (2 × 170px) se reducen en pantallas angostas para que quepan lado a lado. */}
-                  <div className={cn('flex justify-center gap-3', current.secondary && 'max-sm:[zoom:0.84]')}>
+                  {/* En mobile el teléfono se reduce (zoom mantiene el layout proporcional, a diferencia de scale). */}
+                  <div className={cn('flex justify-center gap-3', current.secondary ? 'max-sm:[zoom:0.6]' : 'max-sm:[zoom:0.7]')}>
                     <PhoneMockup
                       imageName={current.imageName}
                       badgeText={text.badge}
@@ -293,18 +297,18 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
                     )}
                   </div>
                   <div className={cn('text-center', !current.secondary && 'sm:text-left')}>
-                    <span className="mb-2 inline-flex rounded-full border border-[#10B981]/30 bg-[#10B981]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#10B981]">
+                    <span className="mb-1.5 inline-flex rounded-full border border-[#10B981]/30 bg-[#10B981]/10 px-2 py-0.5 text-[10px] font-semibold text-[#10B981] sm:mb-2 sm:px-2.5 sm:text-[11px]">
                       {'chip' in text ? text.chip : current.role ? formatRole(current.role, lang) : tr.allRoles}
                     </span>
-                    <h2 id="onboarding-title" className="text-lg font-bold text-white sm:text-xl">{text.title}</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-300">{text.body}</p>
+                    <h2 id="onboarding-title" className="text-base font-bold leading-snug text-white sm:text-xl">{text.title}</h2>
+                    <p className="mt-1 text-[13px] leading-snug text-slate-300 sm:mt-2 sm:text-sm sm:leading-relaxed">{text.body}</p>
                   </div>
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            <footer className="flex items-center justify-between gap-3 border-t border-slate-800 px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] sm:px-7">
-              <div className="flex items-center gap-1.5" aria-hidden>
+            <footer className="flex items-center justify-between gap-2 border-t border-slate-800 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:gap-3 sm:px-7 sm:py-3.5">
+              <div className="hidden items-center gap-1.5 sm:flex" aria-hidden>
                 {steps.map((s, i) => (
                   <button
                     key={`${s.key}-${i}`}
@@ -316,9 +320,9 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
                 ))}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex w-full items-center gap-2 sm:w-auto">
                 {!isLast && (
-                  <button type="button" onClick={close} className="rounded-xl px-2.5 py-2 text-sm font-medium text-slate-400 hover:text-white">
+                  <button type="button" onClick={close} className="mr-auto rounded-xl px-2 py-2 text-sm font-medium text-slate-400 hover:text-white sm:mr-0 sm:px-2.5">
                     {tr.skip}
                   </button>
                 )}
@@ -326,16 +330,17 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
                   <button
                     type="button"
                     onClick={() => setIndex((i) => i - 1)}
-                    className="flex items-center gap-1 rounded-xl border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-cyan-500/50"
+                    aria-label={tr.prev}
+                    className="flex h-10 items-center justify-center gap-1 rounded-xl border border-slate-700 px-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-cyan-500/50 sm:h-auto sm:px-3 sm:py-2"
                   >
-                    <ChevronLeft className="size-4" /> {tr.prev}
+                    <ChevronLeft className="size-4" /> <span className="hidden sm:inline">{tr.prev}</span>
                   </button>
                 )}
                 {isLast ? (
                   <button
                     type="button"
                     onClick={finish}
-                    className="flex items-center gap-1.5 rounded-xl bg-[#10B981] px-4 py-2 text-sm font-semibold text-white shadow-[0_0_18px_rgba(16,185,129,0.35)] transition-colors hover:bg-emerald-400"
+                    className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#10B981] px-4 text-sm font-semibold text-white shadow-[0_0_18px_rgba(16,185,129,0.35)] transition-colors hover:bg-emerald-400 sm:h-auto sm:flex-none sm:py-2"
                   >
                     <CheckCircle2 className="size-4" /> {context === 'landing' ? tr.finishLanding : tr.finish}
                   </button>
@@ -343,7 +348,7 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
                   <button
                     type="button"
                     onClick={() => setIndex((i) => i + 1)}
-                    className="flex items-center gap-1 rounded-xl bg-[#06B6D4] px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400"
+                    className="flex h-10 items-center justify-center gap-1 rounded-xl bg-[#06B6D4] px-4 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 sm:h-auto sm:py-2"
                   >
                     {tr.next} <ChevronRight className="size-4" />
                   </button>
