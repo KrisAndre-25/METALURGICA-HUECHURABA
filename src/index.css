@@ -9,9 +9,9 @@
    800/700 (30%), Cian Eléctrico como único acento de marca (10%). Los
    colores de estado (ok/warn/risk/stopped) son semánticos, no de marca. */
 @theme {
-  /* Tipografías de marca: Outfit para texto e interfaz; Playfair Display para títulos (`font-display`). */
+  /* Tipografías de marca: Outfit para texto e interfaz; Sora para títulos (`font-display`). */
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-display: "Sora", "Outfit", ui-sans-serif, system-ui, sans-serif;
   --color-forge-bg: #0f172a;
   --color-forge-surface: #1e293b;
   --color-forge-surface-2: #334155;
@@ -303,9 +303,9 @@ body {
     radial-gradient(46rem 34rem at 98% 98%, rgba(59, 130, 246, 0.28), transparent 62%);
 }
 
-/* Títulos en Playfair Display: todos los de la landing (h1–h3, incluido el footer),
+/* Títulos en Sora: todos los de la landing (h1–h3, incluido el footer),
    el login y la Guía de Uso. Los encabezados chicos del dashboard (etiquetas en
-   mayúsculas) siguen en Outfit: una serif display pierde legibilidad a ese tamaño. */
+   mayúsculas) siguen en Outfit, más legible a ese tamaño. */
 .landing-backdrop :is(h1, h2, h3),
 .fl-title,
 #onboarding-title {
