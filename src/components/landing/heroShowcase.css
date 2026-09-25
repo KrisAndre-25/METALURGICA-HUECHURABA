@@ -1,0 +1,43 @@
+/*
+ * Vista previa del hero: los teléfonos se funden hacia abajo (asoman desde el
+ * borde) y flotan suavemente. Tailwind v4 usa las propiedades `translate`/`rotate`,
+ * así que animar `transform` aquí no pisa el centrado ni la inclinación.
+ */
+/* Fundido en los 4 lados (no solo abajo): una máscara recorta todo a su rectángulo, así
+   que si algún borde queda opaco se ve un "cuadro" duro alrededor del halo y los teléfonos.
+   Se intersecan un degradado vertical y uno horizontal para que ningún borde se note. */
+.hero-showcase {
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0, black 14%, black 58%, transparent 100%),
+    linear-gradient(to right, transparent 0, black 12%, black 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent 0, black 14%, black 58%, transparent 100%),
+    linear-gradient(to right, transparent 0, black 12%, black 88%, transparent 100%);
+  mask-composite: intersect;
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.hero-float {
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+.hero-float-slow {
+  animation: hero-float 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-float,
+  .hero-float-slow {
+    animation: none;
+  }
+}

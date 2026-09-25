@@ -17,12 +17,10 @@
   box-shadow: 0 0 40px rgba(6, 182, 212, 0.08);
 }
 
+/* Tamaño del título: el mismo de todas las secciones (SECTION_TITLE_CLASSES). */
 .demo-form .df-heading {
   display: block;
   color: #fff;
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1.2;
 }
 
 .demo-form .df-subtitle {

@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useRef, type AnchorHTMLAttributes, type ButtonHT
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cn } from './cn';
+import { SECTION_TITLE_CLASSES } from '../landing/sectionTitle';
 import './motionFooter.css';
 
 if (typeof window !== 'undefined') {
@@ -196,7 +197,7 @@ export function CinematicFooter({
         </div>
 
         <div className="relative z-10 mx-auto mt-20 flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6">
-          <h2 ref={headingRef} className="footer-text-glow mb-10 text-center text-4xl font-black tracking-tighter sm:text-5xl md:mb-12 md:text-7xl lg:text-8xl">
+          <h2 ref={headingRef} className={cn('footer-text-glow mb-10 text-center md:mb-12', SECTION_TITLE_CLASSES)}>
             {heading}
           </h2>
 
@@ -214,7 +215,7 @@ export function CinematicFooter({
           </div>
         </div>
 
-        <div className="relative z-20 flex w-full flex-col items-center justify-between gap-5 px-6 pb-8 md:flex-row md:px-12">
+        <div className="relative z-20 flex w-full flex-col items-center justify-between gap-5 px-6 pb-28 md:flex-row md:px-12 lg:pb-8">
           <div className="order-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500 md:order-1 md:text-xs">{copyright}</div>
           <div className="footer-glass-pill order-1 flex cursor-default items-center gap-2 rounded-full px-6 py-3 md:order-2">{badge}</div>
           <MagneticButton

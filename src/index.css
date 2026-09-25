@@ -9,6 +9,9 @@
    800/700 (30%), Cian Eléctrico como único acento de marca (10%). Los
    colores de estado (ok/warn/risk/stopped) son semánticos, no de marca. */
 @theme {
+  /* Tipografías de marca: Outfit para texto e interfaz; Playfair Display para títulos (`font-display`). */
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
   --color-forge-bg: #0f172a;
   --color-forge-surface: #1e293b;
   --color-forge-surface-2: #334155;
@@ -284,4 +287,27 @@ body {
 [data-offscreen] *::before,
 [data-offscreen] *::after {
   animation-play-state: paused !important;
+}
+
+/* Landing: fondo único de toda la página (va en el contenedor que scrollea, así
+   no se mueve con el contenido). Base casi negra con halos difuminados en la
+   paleta DMAIX: azul arriba a la izquierda, cian a la derecha, esmeralda al
+   centro y abajo. Las secciones son transparentes encima de él. */
+.landing-backdrop {
+  background-color: #020617;
+  background-image:
+    radial-gradient(55rem 38rem at 6% 4%, rgba(37, 99, 235, 0.32), transparent 62%),
+    radial-gradient(48rem 34rem at 94% 20%, rgba(6, 182, 212, 0.24), transparent 62%),
+    radial-gradient(56rem 36rem at 50% 60%, rgba(16, 185, 129, 0.12), transparent 66%),
+    radial-gradient(48rem 36rem at 4% 96%, rgba(16, 185, 129, 0.24), transparent 62%),
+    radial-gradient(46rem 34rem at 98% 98%, rgba(59, 130, 246, 0.28), transparent 62%);
+}
+
+/* Títulos en Playfair Display: todos los de la landing (h1–h3, incluido el footer),
+   el login y la Guía de Uso. Los encabezados chicos del dashboard (etiquetas en
+   mayúsculas) siguen en Outfit: una serif display pierde legibilidad a ese tamaño. */
+.landing-backdrop :is(h1, h2, h3),
+.fl-title,
+#onboarding-title {
+  font-family: var(--font-display);
 }

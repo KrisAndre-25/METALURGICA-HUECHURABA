@@ -151,7 +151,7 @@ export function Card({ card, closeLabel }: CardProps) {
                   <IconX className="size-5" />
                 </button>
                 <p className="text-sm font-semibold uppercase tracking-wider text-[#06B6D4]">{card.category}</p>
-                <p className="mt-3 text-2xl font-bold text-white md:text-5xl">{card.title}</p>
+                <p className="mt-3 font-display text-2xl font-bold text-white md:text-5xl">{card.title}</p>
                 <div className="py-8 md:py-10">{card.content}</div>
               </motion.div>
             </div>
@@ -171,7 +171,7 @@ export function Card({ card, closeLabel }: CardProps) {
       >
         <div className="relative z-20 p-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#06B6D4]">{card.category}</p>
-          <p className="mt-2 text-xl font-bold leading-tight text-balance text-white md:text-2xl">{card.title}</p>
+          <p className="mt-2 font-display text-xl font-bold leading-tight text-balance text-white md:text-2xl">{card.title}</p>
           <p className="mt-2 line-clamp-3 text-[13px] leading-snug text-slate-400">{card.summary}</p>
         </div>
 

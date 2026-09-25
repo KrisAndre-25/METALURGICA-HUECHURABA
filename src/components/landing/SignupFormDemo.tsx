@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useToast } from '../ui/Toast';
 import { useLandingLanguage, type LandingLanguage } from '../../contexts/LandingLanguageContext';
 import './demoForm.css';
+import { SECTION_TITLE_CLASSES } from './sectionTitle';
 
 const TEXT: Record<
   LandingLanguage,
@@ -70,7 +71,7 @@ export function SignupFormDemo() {
   return (
     <div id="subscribe" className="w-full px-4">
       <form onSubmit={handleSubmit} onReset={() => setForm(EMPTY_FORM)} className="demo-form">
-        <h3 className="df-heading">{t.title}</h3>
+        <h2 className={`df-heading ${SECTION_TITLE_CLASSES}`}>{t.title}</h2>
         <p className="df-subtitle">{t.subtitle}</p>
 
         {submitted ? (

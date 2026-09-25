@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { IconRocket } from '@tabler/icons-react';
+import { IconArrowRight, IconCircleCheck, IconPlayerPlay, IconRocket } from '@tabler/icons-react';
 import { LandingNavbar } from '../components/landing/LandingNavbar';
 import { KristopherCard, YojanCard } from '../components/landing/TeamCards';
 import { FlipWords } from '../components/landing/FlipWords';
@@ -11,9 +11,10 @@ import { AnimatedBeamBackground } from '../components/landing/AnimatedBeamBackgr
 import { CalendarBackground } from '../components/landing/CalendarBackground';
 import { Marquee3DSection } from '../components/landing/Marquee3DSection';
 import Timeline, { type TimelineStep } from '../components/ui/timeline';
-import { ErrorPattern } from '../components/landing/ErrorPattern';
 import { SquigglyText } from '../components/landing/SquigglyText';
 import { SignupFormDemo } from '../components/landing/SignupFormDemo';
+import { HeroShowcase } from '../components/landing/HeroShowcase';
+import { SECTION_TITLE_CLASSES } from '../components/landing/sectionTitle';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { OnboardingWizard, shouldShowWizard } from '../components/OnboardingWizard';
 import { LandingLanguageProvider, useLandingLanguage, type LandingLanguage } from '../contexts/LandingLanguageContext';
@@ -32,7 +33,17 @@ const PRIMARY_CTA_CLASSES =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black';
 
 interface Content {
-  hero: { words: string[]; pre: string; post: string; subtitle: string; ctaPrimary: string };
+  hero: {
+    badge: string;
+    words: string[];
+    pre: string;
+    post: string;
+    subtitle: string;
+    ctaPrimary: string;
+    ctaSecondary: string;
+    perks: string[];
+    shotAlts: [string, string, string];
+  };
   features: {
     heading: string;
     subtitle: string;
@@ -63,12 +74,16 @@ interface Content {
 const CONTENT: Record<LandingLanguage, Content> = {
   es: {
     hero: {
+      badge: 'Lean Six Sigma · DMAIC en tiempo real',
       words: ['Optimiza', 'Automatiza', 'Acelera', 'Digitaliza'],
       pre: 'Controla y ',
       post: 'tu producción metalúrgica en tiempo real',
       subtitle:
         'Elimina la ceguera operativa en planta. DMAIX transforma tus Órdenes de Trabajo (OT) en métricas de alto rendimiento basadas en la metodología DMAIC.',
       ctaPrimary: 'Solicitar Demo Industrial',
+      ctaSecondary: 'Ver cómo funciona',
+      perks: ['Sin instalar nada', 'Funciona en el celular', 'Datos en tiempo real'],
+      shotAlts: ['Solicitudes pendientes de aprobación', 'Torre de Control en el celular', 'Checklist rápido de producción'],
     },
     features: {
       heading: 'Diseñado para el piso de planta, no para la oficina',
@@ -154,29 +169,33 @@ const CONTENT: Record<LandingLanguage, Content> = {
         'Desarrollador enfocado en la arquitectura técnica frontend, diseño UI/UX B2B y la implementación de tableros Kanban interactivos a pie de máquina.',
       kristopherGithub: 'Ver Perfil de GitHub',
       kristopherLinkedin: 'Ver Perfil de LinkedIn',
-      yojanRole: 'Ingeniero Civil Industrial | Co-Founder',
-      yojanSpecialty: 'Experto en Lean Six Sigma & Optimización de Procesos',
+      yojanRole: 'Ingeniero Industrial | Co-Founder',
+      yojanSpecialty: 'Especialista en Dirección de Proyectos · +20 años en la industria',
       yojanBio:
-        'Profesional con amplia experiencia en metodologías industriales Lean y Six Sigma, dedicado a la eliminación de desperdicios y control estadístico DMAIC.',
+        'Lideró puestas en marcha de plantas en el extranjero, estandarización ISO y planes de mantenimiento que redujeron mermas. Une ingeniería de planta con visión financiera.',
       yojanLinkedin: 'Ver Perfil de LinkedIn',
     },
     banner: {
       badge: 'DMAIX Enterprise',
-      pre: '¿Cuántos ',
-      lossWord: 'clientes',
-      mid: ' necesitas perder para usar ',
+      pre: 'No pierdas más ',
+      lossWord: 'CLIENTES',
+      mid: ', usa ',
       dmaixWord: 'DMAIX',
       tagline: 'El Estándar Enterprise en Trazabilidad Metalúrgica y Control DMAIC',
     },
   },
   en: {
     hero: {
+      badge: 'Lean Six Sigma · Real-time DMAIC',
       words: ['Optimize', 'Automate', 'Accelerate', 'Digitize'],
       pre: 'Control and ',
       post: 'your metalworking production in real time',
       subtitle:
         'Eliminate operational blindness on the shop floor. DMAIX turns your Work Orders into high-performance metrics built on the DMAIC methodology.',
       ctaPrimary: 'Request Industrial Demo',
+      ctaSecondary: 'See how it works',
+      perks: ['Nothing to install', 'Works on your phone', 'Real-time data'],
+      shotAlts: ['Requests awaiting approval', 'Control Tower on a phone', 'Quick production checklist'],
     },
     features: {
       heading: 'Built for the shop floor, not the office',
@@ -262,17 +281,17 @@ const CONTENT: Record<LandingLanguage, Content> = {
         'Developer focused on frontend technical architecture, B2B UI/UX design and the implementation of interactive Kanban boards right at the machine.',
       kristopherGithub: 'View GitHub Profile',
       kristopherLinkedin: 'View LinkedIn Profile',
-      yojanRole: 'Industrial Civil Engineer | Co-Founder',
-      yojanSpecialty: 'Lean Six Sigma & Process Optimization Expert',
+      yojanRole: 'Industrial Engineer | Co-Founder',
+      yojanSpecialty: 'Project Management Specialist · 20+ years in industry',
       yojanBio:
-        'Professional with extensive experience in Lean and Six Sigma industrial methodologies, dedicated to waste elimination and DMAIC statistical control.',
+        'Led plant start-ups abroad, ISO process standardization and maintenance plans that cut operational losses. Combines plant engineering with financial vision.',
       yojanLinkedin: 'View LinkedIn Profile',
     },
     banner: {
       badge: 'DMAIX Enterprise',
-      pre: 'How many ',
-      lossWord: 'clients',
-      mid: ' do you need to lose before using ',
+      pre: 'Stop losing ',
+      lossWord: 'CLIENTS',
+      mid: ', use ',
       dmaixWord: 'DMAIX',
       tagline: 'The Enterprise Standard in Metalworking Traceability and DMAIC Control',
     },
@@ -329,33 +348,43 @@ function HomeContent({ onLogin }: HomeProps) {
   }, []);
 
   return (
-    <div ref={scrollerRef} className="h-screen snap-y snap-proximity overflow-y-scroll scroll-smooth bg-black text-slate-100">
+    <div ref={scrollerRef} className="landing-backdrop h-screen snap-y snap-proximity overflow-y-scroll scroll-smooth text-slate-100">
       <LandingNavbar onLogin={onLogin} onOpenGuide={() => setGuideOpen(true)} />
       <OnboardingWizard open={guideOpen} onClose={() => setGuideOpen(false)} context="landing" onFinish={onLogin} language={language} />
 
       <main id="main-content">
-        {/* SECCIÓN 1 — Pro Hero */}
+        {/* SECCIÓN 1 — Hero: badge, titular con palabra animada, CTAs y vista previa del producto */}
         <section
           id="hero"
-          className="relative flex min-h-screen snap-start flex-col items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/40 via-slate-950 to-black px-4 py-16 sm:px-6"
+          className="relative flex min-h-screen snap-start flex-col items-center overflow-hidden px-4 pt-28 sm:px-6 sm:pt-32"
         >
           <div
-            className="pointer-events-none absolute inset-0 opacity-30"
-            style={{ backgroundImage: 'radial-gradient(circle, rgba(59,130,246,0.25) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
+            className="pointer-events-none absolute inset-0 opacity-30 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]"
+            style={{ backgroundImage: 'radial-gradient(circle, rgba(6,182,212,0.28) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
           />
-          <div className="pointer-events-none absolute -left-24 -top-24 size-[26rem] rounded-full bg-blue-600/20 blur-[120px]" />
-          <div className="pointer-events-none absolute -bottom-24 -right-24 size-[26rem] rounded-full bg-cyan-500/10 blur-[120px]" />
 
-          <div className="relative mx-auto max-w-3xl text-center">
+          <div className="relative mx-auto max-w-4xl text-center">
+            <motion.a
+              href="#dmaic"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="group mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-[#10B981]/30 bg-[#10B981]/10 py-1 pl-1 pr-3 text-xs font-medium text-emerald-200 backdrop-blur transition-colors hover:border-[#10B981]/60"
+            >
+              <span className="rounded-full bg-[#10B981] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-950">DMAIC</span>
+              {c.hero.badge}
+              <IconArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+            </motion.a>
+
             <motion.h1
               key={`hero-${language}`}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-2xl font-bold leading-tight text-white sm:text-4xl"
+              transition={{ duration: 0.5, delay: 0.05 }}
+              className={`${SECTION_TITLE_CLASSES} text-white`}
             >
               {c.hero.pre}
-              <FlipWords words={c.hero.words} className="font-bold text-cyan-400" />
+              <FlipWords words={c.hero.words} className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-emerald-400 bg-clip-text font-black text-transparent" />
               <br />
               {c.hero.post}
             </motion.h1>
@@ -363,8 +392,8 @@ function HomeContent({ onLogin }: HomeProps) {
               key={`hero-sub-${language}`}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="mx-auto mt-6 max-w-xl text-base text-slate-400 sm:text-lg"
+              transition={{ duration: 0.5, delay: 0.12 }}
+              className="mx-auto mt-6 max-w-2xl text-base text-slate-400 sm:text-lg"
             >
               {c.hero.subtitle}
             </motion.p>
@@ -377,15 +406,40 @@ function HomeContent({ onLogin }: HomeProps) {
               <a href="#subscribe" className={PRIMARY_CTA_CLASSES}>
                 <IconRocket className="size-4" /> {c.hero.ctaPrimary}
               </a>
+              <a
+                href="#features"
+                className="flex items-center gap-2 rounded-full border border-slate-600 px-7 py-4 text-[15px] font-semibold text-slate-200 transition-colors hover:border-cyan-400/60 hover:text-white"
+              >
+                <IconPlayerPlay className="size-4 text-cyan-300" /> {c.hero.ctaSecondary}
+              </a>
             </motion.div>
+            <motion.ul
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-slate-400 sm:text-sm"
+            >
+              {c.hero.perks.map((perk) => (
+                <li key={perk} className="flex items-center gap-1.5">
+                  <IconCircleCheck className="size-4 text-[#10B981]" /> {perk}
+                </li>
+              ))}
+            </motion.ul>
           </div>
+
+          <HeroShowcase
+            shots={[
+              { src: '/aprobacion_admin.jpeg', alt: c.hero.shotAlts[0] },
+              { src: '/torre_de_control_app.jpeg', alt: c.hero.shotAlts[1] },
+              { src: '/produccion_OT.jpeg', alt: c.hero.shotAlts[2] },
+            ]}
+          />
         </section>
 
         {/* SECCIÓN 2 — Carrusel "Apple Cards": Diseñado para el piso de planta */}
         <section
           id="features"
           className="flex min-h-screen snap-start flex-col justify-center py-16"
-          style={{ backgroundImage: 'linear-gradient(to bottom, black, #0B1528 50%, black)' }}
         >
           <Carousel
             prevLabel={c.features.prev}
@@ -399,7 +453,7 @@ function HomeContent({ onLogin }: HomeProps) {
                 variants={FADE_UP}
                 transition={{ duration: 0.4 }}
               >
-                <h2 className="max-w-3xl text-2xl font-bold text-white sm:text-3xl md:text-4xl lg:text-5xl">{c.features.heading}</h2>
+                <h2 className={`max-w-4xl ${SECTION_TITLE_CLASSES} text-white`}>{c.features.heading}</h2>
                 <p className="mt-3 max-w-2xl text-sm text-slate-400 sm:text-base">{c.features.subtitle}</p>
               </motion.div>
             }
@@ -410,10 +464,9 @@ function HomeContent({ onLogin }: HomeProps) {
         <section
           id="methodology"
           className="flex min-h-screen snap-start flex-col justify-center px-4 py-20 sm:px-6"
-          style={{ backgroundImage: 'radial-gradient(ellipse at top, rgba(11,21,40,0.9), black 65%)' }}
         >
           <div className="mx-auto mb-10 max-w-2xl text-center">
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">{c.methodology.heading}</h2>
+            <h2 className={`${SECTION_TITLE_CLASSES} text-white`}>{c.methodology.heading}</h2>
             <p className="mt-3 text-sm text-slate-400 sm:text-base">{c.methodology.subtitle}</p>
           </div>
           <Marquee3DSection />
@@ -423,25 +476,33 @@ function HomeContent({ onLogin }: HomeProps) {
         <Timeline
           id="dmaic"
           title={c.dmaic.title}
+          titleClassName={SECTION_TITLE_CLASSES}
           periodLabel={c.dmaic.periodLabel}
           steps={c.dmaic.steps}
           imageUrl="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1200&q=80&auto=format&fit=crop"
           imageAlt={c.dmaic.imageAlt}
-          backgroundColor="#000000"
           textColor="#ffffff"
           mutedTextColor="#94a3b8"
-          activeColor="#06B6D4"
+          activeColor="#10B981"
           duration={1.4}
+          // Al ir llegando, el fondo de la página se funde a negro (y vuelve a abrirse al salir).
+          sectionBackground="linear-gradient(to bottom, transparent 0, #000 min(45vh, 9%), #000 91%, transparent 100%)"
+          // Toques esmeralda como el logo, fijos mientras la línea DMAIC se recorre.
+          backdrop={
+            <>
+              <div className="absolute -left-[10%] top-[8%] h-[55vh] w-[45vw] rounded-full bg-[#10B981]/15 blur-[120px]" />
+              <div className="absolute -right-[8%] bottom-[5%] h-[50vh] w-[40vw] rounded-full bg-[#10B981]/10 blur-[130px]" />
+            </>
+          }
         />
 
         {/* SECCIÓN 5 — ¿Quién construye esto? (tarjetas 3D del equipo) */}
         <section
           id="equipo"
           className="flex min-h-screen snap-start flex-col justify-center px-4 py-20 sm:px-6"
-          style={{ backgroundImage: 'radial-gradient(circle at 50% 30%, rgba(37,99,235,0.12), black 70%)' }}
         >
           <div className="mx-auto mb-10 max-w-2xl text-center">
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">{c.team.heading}</h2>
+            <h2 className={`${SECTION_TITLE_CLASSES} text-white`}>{c.team.heading}</h2>
             <p className="mt-3 text-sm text-slate-400 sm:text-base">{c.team.subtitle}</p>
           </div>
 
@@ -475,16 +536,13 @@ function HomeContent({ onLogin }: HomeProps) {
           </div>
         </section>
 
-        {/* SECCIÓN 6 — Brand Banner (fondo animado 404 ERROR + SquigglyText) */}
-        <section className="relative flex min-h-screen snap-start flex-col items-center justify-center overflow-hidden bg-[#0b1220] px-4 py-20 sm:px-6">
-          <ErrorPattern />
-          {/* Viñeta navy detrás del texto: el patrón queda de fondo sin competir con la pregunta. */}
-          <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,rgba(11,18,32,0.94)_0%,rgba(11,18,32,0.7)_40%,rgba(11,18,32,0.15)_75%)]" />
+        {/* SECCIÓN 6 — Brand Banner (SquigglyText) */}
+        <section className="relative flex min-h-screen snap-start flex-col items-center justify-center overflow-hidden px-4 py-20 sm:px-6">
           <div className="relative z-20 mx-auto max-w-4xl space-y-6 px-4 text-center">
             <span className="inline-block rounded-full border border-emerald-500/30 bg-blue-950/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cyan-400 shadow-[0_0_15px_rgba(16,185,129,0.15)] backdrop-blur-md sm:text-sm">
               {c.banner.badge}
             </span>
-            <h2 className="text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h2 className={`${SECTION_TITLE_CLASSES} text-white`}>
               {c.banner.pre}
               <SquigglyText className="text-red-500" scale={6} stepDuration={70}>
                 {c.banner.lossWord}
@@ -493,7 +551,6 @@ function HomeContent({ onLogin }: HomeProps) {
               <SquigglyText className="text-emerald-400" scale={5} stepDuration={80}>
                 {c.banner.dmaixWord}
               </SquigglyText>
-              ?
             </h2>
             <p className="mx-auto max-w-2xl text-base font-light text-neutral-300 md:text-lg">{c.banner.tagline}</p>
           </div>
@@ -503,7 +560,6 @@ function HomeContent({ onLogin }: HomeProps) {
         {/* SECCIÓN 8 — Captura de Leads B2B (el footer cinemático va después, fuera de la sección) */}
         <section
           className="relative z-10 flex min-h-screen snap-start flex-col justify-center px-4 py-20 sm:px-6"
-          style={{ backgroundImage: 'linear-gradient(to bottom, black, #0B1528 60%, black)' }}
         >
           <div className="flex flex-1 items-center justify-center py-10">
             <SignupFormDemo />

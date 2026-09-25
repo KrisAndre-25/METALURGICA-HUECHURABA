@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, ChevronLeft, ChevronRight, CircleHelp, X } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, CircleHelp, X, ZoomIn } from 'lucide-react';
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { useUiPrefs } from '../contexts/UiPrefsContext';
 import { STRINGS, type Strings } from '../i18n/strings';
@@ -99,12 +99,40 @@ interface PhoneMockupProps {
   highlightArea?: HighlightArea;
   /** Clases de posición que reemplazan a las de `highlightArea`. */
   badgePosition?: string;
+  /** Si viene, el teléfono se puede tocar para verlo ampliado. */
+  onZoom?: () => void;
+  zoomLabel?: string;
 }
 
-function PhoneMockup({ imageName, badgeText, description, highlightArea = 'top', badgePosition }: PhoneMockupProps) {
+function PhoneMockup({ imageName, badgeText, description, highlightArea = 'top', badgePosition, onZoom, zoomLabel }: PhoneMockupProps) {
   return (
     <div className="flex select-none flex-col items-center gap-2">
-      <div className="group relative flex h-[340px] w-[170px] justify-center overflow-hidden rounded-[30px] border-[3px] border-slate-800 bg-slate-900 shadow-2xl">
+      <div
+        {...(onZoom
+          ? {
+              role: 'button',
+              tabIndex: 0,
+              'aria-label': zoomLabel,
+              title: zoomLabel,
+              onClick: onZoom,
+              onKeyDown: (e: { key: string; preventDefault: () => void }) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onZoom();
+                }
+              },
+            }
+          : {})}
+        className={cn(
+          'group relative flex h-[340px] w-[170px] justify-center overflow-hidden rounded-[30px] border-[3px] border-slate-800 bg-slate-900 shadow-2xl',
+          onZoom && 'cursor-zoom-in outline-none transition-[border-color,box-shadow] hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.25)] focus-visible:border-cyan-400',
+        )}
+      >
+        {onZoom && (
+          <span className="absolute bottom-3 right-3 z-40 flex size-7 items-center justify-center rounded-full bg-[#06B6D4] text-slate-950 shadow-lg transition-transform group-hover:scale-110" aria-hidden>
+            <ZoomIn className="size-4" />
+          </span>
+        )}
         <div className="pointer-events-none absolute inset-0 z-20 rounded-[28px] border border-white/10" />
 
         <div className="relative h-full w-full bg-slate-950">
@@ -178,6 +206,8 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
   const lang = language ?? uiPrefs.language;
   const tr = (language ? STRINGS[language] : uiPrefs.t).onboarding;
   const [index, setIndex] = useState(0);
+  // Teléfono ampliado (lightbox) y su factor de zoom según el tamaño de pantalla.
+  const [zoomed, setZoomed] = useState<{ mockup: PhoneMockupProps; factor: number } | null>(null);
 
   const steps = STEPS;
   const total = steps.length;
@@ -188,7 +218,14 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
   const close = () => {
     markWizardCompleted();
     setIndex(0); // La próxima apertura parte desde el primer paso.
+    setZoomed(null);
     onClose();
+  };
+
+  const openZoom = (mockup: PhoneMockupProps) => {
+    // El teléfono mide 170×340: se agranda hasta ~86% del alto / 92% del ancho, entre 1.4× y 2.6×.
+    const factor = Math.max(1.4, Math.min(2.6, (window.innerHeight * 0.86) / 360, (window.innerWidth * 0.92) / 180));
+    setZoomed({ mockup, factor });
   };
 
   const finish = () => {
@@ -199,6 +236,11 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
+      // Con el teléfono ampliado, Esc solo cierra la vista ampliada y las flechas no cambian de paso.
+      if (zoomed) {
+        if (e.key === 'Escape') setZoomed(null);
+        return;
+      }
       if (e.key === 'Escape') {
         markWizardCompleted();
         setIndex(0);
@@ -209,12 +251,62 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, total, onClose]);
+  }, [open, total, onClose, zoomed]);
 
   if (!current) return null;
   const text = tr.steps[current.key];
+  const primaryMockup: PhoneMockupProps = {
+    imageName: current.imageName,
+    badgeText: text.badge,
+    highlightArea: current.highlightArea,
+    badgePosition: current.badgePosition,
+  };
+  const secondaryMockup: PhoneMockupProps | null =
+    current.secondary && 'badge2' in text
+      ? {
+          imageName: current.secondary.imageName,
+          badgeText: text.badge2,
+          highlightArea: current.secondary.highlightArea,
+          badgePosition: current.secondary.badgePosition,
+        }
+      : null;
 
   return (
+    <>
+    <AnimatePresence>
+      {open && zoomed && (
+        <motion.div
+          className="fixed inset-0 z-[95] flex items-center justify-center bg-black/85 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setZoomed(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={tr.zoomIn}
+        >
+          <button
+            type="button"
+            onClick={() => setZoomed(null)}
+            aria-label={tr.zoomClose}
+            className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-slate-800 text-slate-200 transition-colors hover:bg-[#06B6D4] hover:text-slate-950"
+          >
+            <X className="size-5" />
+          </button>
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            // `zoom` (no `transform: scale`) para que el badge y el texto de la captura se re-rendericen nítidos.
+            style={{ zoom: zoomed.factor }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <PhoneMockup {...zoomed.mockup} />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -279,23 +371,14 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
                 >
                   {/* En mobile el teléfono se reduce (zoom mantiene el layout proporcional, a diferencia de scale). */}
                   <div className={cn('flex justify-center gap-3', current.secondary ? 'max-sm:[zoom:0.6]' : 'max-sm:[zoom:0.7]')}>
-                    <PhoneMockup
-                      imageName={current.imageName}
-                      badgeText={text.badge}
-                      description={text.caption}
-                      highlightArea={current.highlightArea}
-                      badgePosition={current.badgePosition}
-                    />
-                    {current.secondary && 'badge2' in text && (
-                      <PhoneMockup
-                        imageName={current.secondary.imageName}
-                        badgeText={text.badge2}
-                        description={text.caption2}
-                        highlightArea={current.secondary.highlightArea}
-                        badgePosition={current.secondary.badgePosition}
-                      />
+                    <PhoneMockup {...primaryMockup} description={text.caption} onZoom={() => openZoom(primaryMockup)} zoomLabel={tr.zoomIn} />
+                    {secondaryMockup && 'caption2' in text && (
+                      <PhoneMockup {...secondaryMockup} description={text.caption2} onZoom={() => openZoom(secondaryMockup)} zoomLabel={tr.zoomIn} />
                     )}
                   </div>
+                  <p className="-mt-1 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 sm:hidden">
+                    <ZoomIn className="size-3.5" aria-hidden /> {tr.zoomHint}
+                  </p>
                   <div className={cn('text-center', !current.secondary && 'sm:text-left')}>
                     <span className="mb-1.5 inline-flex rounded-full border border-[#10B981]/30 bg-[#10B981]/10 px-2 py-0.5 text-[10px] font-semibold text-[#10B981] sm:mb-2 sm:px-2.5 sm:text-[11px]">
                       {'chip' in text ? text.chip : current.role ? formatRole(current.role, lang) : tr.allRoles}
@@ -359,5 +442,6 @@ export function OnboardingWizard({ open, onClose, context = 'app', onFinish, lan
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }

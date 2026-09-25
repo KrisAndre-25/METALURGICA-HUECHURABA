@@ -1,7 +1,7 @@
 // Basado en Hyperiux Vault (https://vault.hyperiux.com), adaptado a DMAIX:
 // pasos por props (DMAIC) en vez de fechas fijas, scroller propio de la landing
 // y ancho de pista calculado para 5 hitos.
-import { type CSSProperties, useLayoutEffect, useRef, useSyncExternalStore } from 'react';
+import { type CSSProperties, type ReactNode, useLayoutEffect, useRef, useSyncExternalStore } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
@@ -67,6 +67,12 @@ export type TimelineProps = {
   /** Selector del contenedor que hace scroll (la landing no scrollea en `window`). */
   scrollerSelector?: string;
   id?: string;
+  /** Clases del título (para igualarlo al resto de títulos de la página). */
+  titleClassName?: string;
+  /** Fondo CSS completo de la sección (reemplaza a `backgroundColor`), ej. un degradado. */
+  sectionBackground?: string;
+  /** Decoración fija detrás de la pista mientras la sección está fijada (ej. halos). */
+  backdrop?: ReactNode;
 };
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
@@ -99,6 +105,9 @@ export default function Timeline({
   duration = 1.2,
   scrollerSelector = '.snap-y',
   id = 'journey',
+  titleClassName = 'text-[3vw] font-black leading-[0.95] max-[600px]:text-[8.5vw]',
+  sectionBackground,
+  backdrop,
 }: TimelineProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const wholeSliderRef = useRef<HTMLDivElement>(null);
@@ -106,7 +115,7 @@ export default function Timeline({
   const normalizedDuration = Math.max(0.2, duration);
   const topSteps = steps.filter((s) => s.position === 'top');
   const bottomSteps = steps.filter((s) => s.position === 'bottom');
-  const sectionStyle: CSSProperties = { color: textColor, backgroundColor };
+  const sectionStyle: CSSProperties = sectionBackground ? { color: textColor, background: sectionBackground } : { color: textColor, backgroundColor };
   const activeStyle: CSSProperties = { backgroundColor: activeColor };
   const mutedTextStyle: CSSProperties = { color: mutedTextColor };
 
@@ -233,9 +242,10 @@ export default function Timeline({
     <section ref={sectionRef} id={id} className="relative h-[200vw] w-full max-[600px]:h-[400vh]" style={sectionStyle}>
       {/* `w-full` (no `w-screen`): dentro del scroller, 100vw incluye la barra de scroll y generaría scroll horizontal. */}
       <div className="sticky top-0 h-screen w-full overflow-hidden pt-[10%] max-[600px]:top-[5%]">
+        {backdrop && <div className="pointer-events-none absolute inset-0">{backdrop}</div>}
         <div
           ref={wholeSliderRef}
-          className="flex h-[30vw] w-[210vw] items-center gap-[5vw] px-[5vw] max-[600px]:h-[80vh] max-[600px]:w-[480vw] max-[600px]:px-[7vw]"
+          className="relative flex h-[30vw] w-[210vw] items-center gap-[5vw] px-[5vw] max-[600px]:h-[80vh] max-[600px]:w-[480vw] max-[600px]:px-[7vw]"
         >
           <div className="h-full w-[30vw] shrink-0 overflow-hidden rounded-[1vw] border border-white/10 max-[600px]:h-[65vw] max-[600px]:w-[85vw] max-[600px]:rounded-[5vw]">
             <img src={imageUrl} alt={imageAlt} draggable={false} className="h-full w-full object-cover" />
@@ -250,7 +260,7 @@ export default function Timeline({
 
             <div className="flex h-1/2 w-full items-center justify-start gap-[.5vw]">
               <div className="h-full w-[20%] shrink-0 pt-[2vw] max-[600px]:h-fit max-[600px]:pt-[5vw]">
-                <h2 className="w-[80%] text-[3vw] font-black leading-[0.95] max-[600px]:text-[8.5vw]">{title}</h2>
+                <h2 className={`w-[80%] ${titleClassName}`}>{title}</h2>
               </div>
 
               <div className="flex h-full w-full gap-x-[15vw] max-[600px]:gap-x-[40vw]">

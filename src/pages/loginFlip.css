@@ -1,0 +1,169 @@
+/*
+ * Login con giro 3D (adaptado de Uiverse): cara frontal = iniciar sesión,
+ * cara trasera = cuentas de demo (DMAIX no tiene auto-registro). Estilo
+ * neumórfico con la paleta DMAIX: navy en vez de #212121 y foco en cian.
+ */
+.flip-login {
+  --fl-surface: #0f172a;
+  --fl-field: #111c33;
+  --fl-dark: rgba(0, 0, 0, 0.9);
+  --fl-light: rgba(148, 163, 184, 0.35);
+  --fl-accent: #06b6d4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  perspective: 1400px;
+}
+
+.flip-login .fl-card {
+  display: grid;
+  width: 100%;
+  max-width: 380px;
+  transform-style: preserve-3d;
+  transition: transform 1s ease;
+}
+
+.flip-login .fl-card.is-flipped {
+  transform: rotateY(-180deg);
+}
+
+/* Ambas caras apiladas en la misma celda: la tarjeta toma el alto de la más alta. */
+.flip-login .fl-face {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  padding: 48px 36px;
+  border-radius: 15px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: inset 2px 2px 10px var(--fl-dark), inset -1px -1px 5px var(--fl-light);
+}
+
+.flip-login .fl-back {
+  transform: rotateY(-180deg);
+}
+
+@media (max-width: 440px) {
+  .flip-login .fl-face {
+    padding: 40px 22px;
+  }
+}
+
+.flip-login .fl-title {
+  font-size: 25px;
+  font-weight: 600;
+  padding-bottom: 6px;
+  color: #fff;
+}
+
+.flip-login .fl-input,
+.flip-login .fl-btn,
+.flip-login .fl-account {
+  background-color: var(--fl-field);
+  border-radius: 6px;
+  border: 2px solid var(--fl-field);
+  box-shadow: 6px 6px 10px var(--fl-dark), 1px 1px 10px var(--fl-light);
+  color: #fff;
+  transition: 0.35s;
+}
+
+.flip-login .fl-input {
+  width: 100%;
+  max-width: 280px;
+  min-height: 45px;
+  outline: none;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.flip-login .fl-input::placeholder {
+  color: #8b99ad;
+}
+
+.flip-login .fl-input:focus::placeholder {
+  transition: 0.3s;
+  opacity: 0;
+}
+
+.flip-login .fl-input:focus {
+  transform: scale(1.05);
+  border-color: var(--fl-accent);
+  box-shadow: 6px 6px 10px var(--fl-dark), 1px 1px 10px var(--fl-light), inset 2px 2px 10px var(--fl-dark), inset -1px -1px 5px var(--fl-light);
+}
+
+.flip-login .fl-input:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.flip-login .fl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 35px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.flip-login .fl-btn:hover,
+.flip-login .fl-btn:focus-visible {
+  outline: none;
+  transform: scale(1.05);
+  border-color: var(--fl-accent);
+  box-shadow: 6px 6px 10px var(--fl-dark), 1px 1px 10px var(--fl-light), inset 2px 2px 10px var(--fl-dark), inset -1px -1px 5px var(--fl-light);
+}
+
+.flip-login .fl-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Cuentas de demo (cara trasera): mismo relieve que los campos. */
+.flip-login .fl-account {
+  display: flex;
+  width: 100%;
+  max-width: 280px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.flip-login .fl-account:hover,
+.flip-login .fl-account:focus-visible {
+  outline: none;
+  transform: scale(1.04);
+  border-color: #10b981;
+  box-shadow: 6px 6px 10px var(--fl-dark), 1px 1px 10px var(--fl-light), inset 2px 2px 10px var(--fl-dark), inset -1px -1px 5px var(--fl-light);
+}
+
+.flip-login .fl-switch {
+  font-size: 13px;
+  color: #cbd5e1;
+  text-align: center;
+}
+
+.flip-login .fl-toggle {
+  font-weight: 700;
+  color: #67e8f9;
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-login .fl-card {
+    transition: none;
+  }
+}
