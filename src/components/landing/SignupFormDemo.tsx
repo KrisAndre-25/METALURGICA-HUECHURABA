@@ -1,12 +1,8 @@
-import { IconBuildingFactory2, IconMail, IconUser } from '@tabler/icons-react';
+import { IconCircleCheck } from '@tabler/icons-react';
 import { useState, type FormEvent } from 'react';
 import { useToast } from '../ui/Toast';
-import { cn } from '../ui/cn';
 import { useLandingLanguage, type LandingLanguage } from '../../contexts/LandingLanguageContext';
-
-const FIELD_CLASSES =
-  'h-12 w-full rounded-xl border border-blue-900/30 bg-black/60 px-4 text-sm text-slate-100 outline-none ' +
-  'placeholder:text-slate-500 transition-colors focus:border-blue-500';
+import './demoForm.css';
 
 const TEXT: Record<
   LandingLanguage,
@@ -14,118 +10,91 @@ const TEXT: Record<
     title: string;
     subtitle: string;
     submitted: string;
-    firstName: string;
-    lastName: string;
+    name: string;
+    phone: string;
     email: string;
-    plant: string;
+    message: string;
     submit: string;
+    reset: string;
     toastSuccess: string;
   }
 > = {
   es: {
     title: 'Solicita una demo en planta',
-    subtitle: 'Te mostramos DMAIX operando con datos reales de una planta metalúrgica — sin costo ni compromiso.',
+    subtitle: 'Te mostramos DMAIX operando con datos reales de una planta metalúrgica, sin costo ni compromiso.',
     submitted: 'Solicitud enviada correctamente. Revisa tu correo en los próximos minutos.',
-    firstName: 'Nombre',
-    lastName: 'Apellido',
+    name: 'Nombre y apellido',
+    phone: 'Teléfono',
     email: 'Correo corporativo',
-    plant: 'Nombre de la planta',
+    message: 'Cuéntanos de tu planta: qué fabrican, cuántas estaciones tienen y qué te gustaría controlar.',
     submit: 'Solicitar Demo',
+    reset: 'Limpiar',
     toastSuccess: '¡Gracias! Un especialista de DMAIX te contactará a la brevedad.',
   },
   en: {
     title: 'Request an on-site demo',
-    subtitle: "We'll show you DMAIX running with real data from a metalworking plant — no cost, no commitment.",
+    subtitle: "We'll show you DMAIX running with real data from a metalworking plant, no cost, no commitment.",
     submitted: 'Request sent successfully. Check your inbox in the next few minutes.',
-    firstName: 'First name',
-    lastName: 'Last name',
+    name: 'Full name',
+    phone: 'Phone number',
     email: 'Corporate email',
-    plant: 'Plant name',
+    message: 'Tell us about your plant: what you build, how many stations you run and what you want to control.',
     submit: 'Request Demo',
-    toastSuccess: "Thanks! A DMAIX specialist will reach out shortly.",
+    reset: 'Clear',
+    toastSuccess: 'Thanks! A DMAIX specialist will reach out shortly.',
   },
 };
 
-function Field({
-  icon: Icon,
-  value,
-  onChange,
-  placeholder,
-  type = 'text',
-  required,
-}: {
-  icon: typeof IconUser;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  type?: string;
-  required?: boolean;
-}) {
-  return (
-    <div className="relative">
-      <Icon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
-      <input
-        type={type}
-        required={required}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        aria-label={placeholder}
-        className={cn(FIELD_CLASSES, 'pl-11')}
-      />
-    </div>
-  );
-}
+const EMPTY_FORM = { name: '', phone: '', email: '', message: '' };
 
 /**
- * Formulario de solicitud de demo — estilo Aceternity `SignupForm` adaptado
- * a leads B2B de plantas metalúrgicas. Sin backend real: el submit muestra
- * un toast informativo en vez de simular una cuenta creada.
+ * Formulario de solicitud de demo con el diseño de Uiverse (esquina cortada y
+ * borde de acento) en la paleta DMAIX. Sin backend real: el envío muestra un
+ * toast informativo en vez de simular un envío.
  */
 export function SignupFormDemo() {
   const { language } = useLandingLanguage();
   const t = TEXT[language];
   const { showToast } = useToast();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [plant, setPlant] = useState('');
+  const [form, setForm] = useState(EMPTY_FORM);
   const [submitted, setSubmitted] = useState(false);
+  const set = (key: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) return;
+    if (!form.name.trim() || !form.phone.trim() || !form.email.trim()) return;
     setSubmitted(true);
     showToast(t.toastSuccess);
   };
 
   return (
-    <div
-      id="subscribe"
-      className="mx-auto w-full max-w-md rounded-3xl border border-blue-500/20 bg-slate-900/80 p-6 shadow-[0_0_40px_rgba(59,130,246,0.08)] backdrop-blur-sm sm:p-8"
-    >
-      <h3 className="text-xl font-bold text-white">{t.title}</h3>
-      <p className="mt-1.5 text-sm text-slate-400">{t.subtitle}</p>
+    <div id="subscribe" className="w-full px-4">
+      <form onSubmit={handleSubmit} onReset={() => setForm(EMPTY_FORM)} className="demo-form">
+        <h3 className="df-heading">{t.title}</h3>
+        <p className="df-subtitle">{t.subtitle}</p>
 
-      {submitted ? (
-        <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-400">{t.submitted}</div>
-      ) : (
-        <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <Field icon={IconUser} value={firstName} onChange={setFirstName} placeholder={t.firstName} required />
-            <Field icon={IconUser} value={lastName} onChange={setLastName} placeholder={t.lastName} required />
+        {submitted ? (
+          <div className="flex items-start gap-2.5 border-l-4 border-emerald-500 bg-emerald-500/10 p-4 text-sm text-emerald-400">
+            <IconCircleCheck className="mt-0.5 size-5 shrink-0" />
+            {t.submitted}
           </div>
-          <Field icon={IconMail} value={email} onChange={setEmail} placeholder={t.email} type="email" required />
-          <Field icon={IconBuildingFactory2} value={plant} onChange={setPlant} placeholder={t.plant} />
-
-          <button
-            type="submit"
-            className="h-12 w-full rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-sm font-bold text-white shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all hover:from-blue-500 hover:to-cyan-400 hover:shadow-[0_0_28px_rgba(59,130,246,0.55)]"
-          >
-            {t.submit}
-          </button>
-        </form>
-      )}
+        ) : (
+          <>
+            <div className="df-row">
+              <input className="df-input" type="text" name="name" autoComplete="name" placeholder={t.name} aria-label={t.name} value={form.name} onChange={set('name')} required />
+              <input className="df-input" type="tel" name="phone" autoComplete="tel" placeholder={t.phone} aria-label={t.phone} value={form.phone} onChange={set('phone')} required />
+            </div>
+            <input className="df-input" type="email" name="email" autoComplete="email" placeholder={t.email} aria-label={t.email} value={form.email} onChange={set('email')} required />
+            <textarea className="df-textarea" name="message" rows={4} placeholder={t.message} aria-label={t.message} value={form.message} onChange={set('message')} />
+            <div className="df-buttons">
+              <button type="submit" className="df-send">{t.submit}</button>
+              <div className="df-reset-wrap">
+                <button type="reset" className="df-reset">{t.reset}</button>
+              </div>
+            </div>
+          </>
+        )}
+      </form>
     </div>
   );
 }

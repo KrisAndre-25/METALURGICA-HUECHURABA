@@ -1,0 +1,97 @@
+/*
+ * Footer cinemático (revelado tipo "telón") — estilos del componente
+ * motion-footer, con los tokens shadcn reemplazados por la paleta DMAIX
+ * (fondo navy casi negro, acento cian y esmeralda).
+ */
+.cinematic-footer-wrapper {
+  --cf-fg: #f8fafc;
+  --cf-muted: #94a3b8;
+  --cf-bg: #050a14;
+  --cf-primary: #06b6d4;
+  --cf-secondary: #10b981;
+  -webkit-font-smoothing: antialiased;
+  color: var(--cf-fg);
+  background: var(--cf-bg);
+}
+
+@keyframes footer-breathe {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+@keyframes footer-scroll-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-footer-breathe {
+  animation: footer-breathe 8s ease-in-out infinite alternate;
+}
+
+.animate-footer-scroll-marquee {
+  animation: footer-scroll-marquee 40s linear infinite;
+}
+
+.footer-bg-grid {
+  background-size: 60px 60px;
+  background-image:
+    linear-gradient(to right, rgba(6, 182, 212, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(6, 182, 212, 0.06) 1px, transparent 1px);
+  mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+}
+
+.footer-aurora {
+  background: radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.18) 0%, rgba(16, 185, 129, 0.14) 40%, transparent 70%);
+}
+
+.footer-glass-pill {
+  background: linear-gradient(145deg, rgba(248, 250, 252, 0.05) 0%, rgba(248, 250, 252, 0.015) 100%);
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(248, 250, 252, 0.1),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(6, 182, 212, 0.16);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-glass-pill:hover,
+.footer-glass-pill:focus-visible {
+  outline: none;
+  background: linear-gradient(145deg, rgba(6, 182, 212, 0.14) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow:
+    0 20px 40px -10px rgba(0, 0, 0, 0.7),
+    0 0 24px -6px rgba(6, 182, 212, 0.45),
+    inset 0 1px 1px rgba(248, 250, 252, 0.2);
+  color: var(--cf-fg);
+}
+
+.footer-giant-bg-text {
+  font-size: 26vw;
+  line-height: 0.75;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(6, 182, 212, 0.18);
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.22) 0%, transparent 60%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.footer-text-glow {
+  background: linear-gradient(180deg, #f8fafc 0%, rgba(103, 232, 249, 0.55) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.25));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-footer-breathe,
+  .animate-footer-scroll-marquee {
+    animation: none;
+  }
+}

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { IconAlertTriangle, IconBolt, IconCircleCheck, IconPackageOff, IconShieldX } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useInViewport } from '../../hooks/useInViewport';
 import { useLandingLanguage, type LandingLanguage } from '../../contexts/LandingLanguageContext';
 
 interface Alert {
@@ -13,18 +14,18 @@ interface Alert {
 
 const POOL: Record<LandingLanguage, Omit<Alert, 'id'>[]> = {
   es: [
-    { icon: IconBolt, tone: 'stopped', text: 'OT-2137 detenida — Falla de máquina', meta: 'Estación Pintura · hace 2 min' },
-    { icon: IconCircleCheck, tone: 'ok', text: 'OT-2140 — Corte completado en regla', meta: 'Estación Corte · hace 5 min' },
-    { icon: IconPackageOff, tone: 'warn', text: 'OT-2044 en riesgo — Falta de insumos', meta: 'Estación Corte · hace 8 min' },
-    { icon: IconShieldX, tone: 'stopped', text: 'OT-1998 detenida — Control de Calidad', meta: 'Estación Calidad · hace 14 min' },
-    { icon: IconAlertTriangle, tone: 'warn', text: 'OT-2050 — Fecha comprometida próxima a vencer', meta: 'Estación Armado · hace 21 min' },
+    { icon: IconBolt, tone: 'stopped', text: 'OT-2137 detenida: falla de máquina', meta: 'Estación Pintura · hace 2 min' },
+    { icon: IconCircleCheck, tone: 'ok', text: 'OT-2140: corte completado en regla', meta: 'Estación Corte · hace 5 min' },
+    { icon: IconPackageOff, tone: 'warn', text: 'OT-2044 en riesgo: falta de insumos', meta: 'Estación Corte · hace 8 min' },
+    { icon: IconShieldX, tone: 'stopped', text: 'OT-1998 detenida: control de calidad', meta: 'Estación Calidad · hace 14 min' },
+    { icon: IconAlertTriangle, tone: 'warn', text: 'OT-2050: fecha comprometida próxima a vencer', meta: 'Estación Armado · hace 21 min' },
   ],
   en: [
-    { icon: IconBolt, tone: 'stopped', text: 'WO-2137 stopped — Machine failure', meta: 'Painting station · 2 min ago' },
-    { icon: IconCircleCheck, tone: 'ok', text: 'WO-2140 — Cutting completed on spec', meta: 'Cutting station · 5 min ago' },
-    { icon: IconPackageOff, tone: 'warn', text: 'WO-2044 at risk — Missing materials', meta: 'Cutting station · 8 min ago' },
-    { icon: IconShieldX, tone: 'stopped', text: 'WO-1998 stopped — Quality control', meta: 'Quality station · 14 min ago' },
-    { icon: IconAlertTriangle, tone: 'warn', text: 'WO-2050 — Committed date approaching', meta: 'Assembly station · 21 min ago' },
+    { icon: IconBolt, tone: 'stopped', text: 'WO-2137 stopped: machine failure', meta: 'Painting station · 2 min ago' },
+    { icon: IconCircleCheck, tone: 'ok', text: 'WO-2140: cutting completed on spec', meta: 'Cutting station · 5 min ago' },
+    { icon: IconPackageOff, tone: 'warn', text: 'WO-2044 at risk: missing materials', meta: 'Cutting station · 8 min ago' },
+    { icon: IconShieldX, tone: 'stopped', text: 'WO-1998 stopped: quality control', meta: 'Quality station · 14 min ago' },
+    { icon: IconAlertTriangle, tone: 'warn', text: 'WO-2050: committed date approaching', meta: 'Assembly station · 21 min ago' },
   ],
 };
 
@@ -39,19 +40,28 @@ export function AnimatedListBackground() {
   const { language } = useLandingLanguage();
   const pool = POOL[language];
   const [items, setItems] = useState<Alert[]>([{ id: 0, ...pool[0] }]);
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInViewport(ref);
+  const counter = useRef(1);
 
   useEffect(() => {
     setItems([{ id: 0, ...pool[0] }]);
-    let n = 1;
-    const id = setInterval(() => {
-      setItems((prev) => [{ id: n, ...pool[n % pool.length] }, ...prev].slice(0, 4));
-      n += 1;
-    }, 2200);
-    return () => clearInterval(id);
+    counter.current = 1;
   }, [pool]);
 
+  // El feed solo avanza mientras está visible; al volver a verse sigue desde donde quedó.
+  useEffect(() => {
+    if (!inView) return;
+    const id = setInterval(() => {
+      const n = counter.current;
+      setItems((prev) => [{ id: n, ...pool[n % pool.length] }, ...prev].slice(0, 4));
+      counter.current = n + 1;
+    }, 2200);
+    return () => clearInterval(id);
+  }, [pool, inView]);
+
   return (
-    <div className="flex h-full flex-col gap-2 overflow-hidden px-5 pt-6">
+    <div ref={ref} className="flex h-full flex-col gap-2 overflow-hidden px-5 pt-6">
       <AnimatePresence initial={false}>
         {items.map((item) => {
           const Icon = item.icon;

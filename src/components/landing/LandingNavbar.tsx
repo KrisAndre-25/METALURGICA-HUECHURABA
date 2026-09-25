@@ -13,15 +13,15 @@ const LINKS: Record<'es' | 'en', NavLink[]> = {
     { label: 'Inicio', href: '#hero' },
     { label: 'Piso de Planta', href: '#features' },
     { label: 'Lean Six Sigma', href: '#methodology' },
-    { label: 'Torre de Control', href: '#torre-control' },
-    { label: 'Equipo & Plataforma', href: '#equipo' },
+    { label: 'Pasos DMAIC', href: '#dmaic' },
+    { label: 'Equipo', href: '#equipo' },
   ],
   en: [
     { label: 'Home', href: '#hero' },
     { label: 'Shop Floor', href: '#features' },
     { label: 'Lean Six Sigma', href: '#methodology' },
-    { label: 'Control Tower', href: '#torre-control' },
-    { label: 'Team & Platform', href: '#equipo' },
+    { label: 'DMAIC Steps', href: '#dmaic' },
+    { label: 'Team', href: '#equipo' },
   ],
 };
 

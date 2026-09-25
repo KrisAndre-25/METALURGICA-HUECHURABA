@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useInViewport } from '../../hooks/useInViewport';
 import { cn } from '../ui/cn';
 
 interface FlipWordsProps {
@@ -16,14 +17,18 @@ interface FlipWordsProps {
  */
 export function FlipWords({ words, duration = 2200, className }: FlipWordsProps) {
   const [index, setIndex] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInViewport(ref);
 
+  // Solo rota mientras está en pantalla.
   useEffect(() => {
+    if (!inView) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % words.length), duration);
     return () => clearInterval(id);
-  }, [words.length, duration]);
+  }, [words.length, duration, inView]);
 
   return (
-    <span className="relative inline-block" aria-live="polite">
+    <span ref={ref} className="relative inline-block" aria-live="polite">
       <AnimatePresence mode="wait">
         <motion.span
           key={words[index]}

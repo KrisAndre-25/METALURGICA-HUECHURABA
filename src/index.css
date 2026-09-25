@@ -276,3 +276,12 @@ body {
   }
 }
 
+
+/* Landing: las secciones fuera de pantalla quedan con `data-offscreen` (ver Home.tsx)
+   y sus animaciones CSS se congelan — sin costo de GPU/CPU mientras no se ven. */
+[data-offscreen],
+[data-offscreen] *,
+[data-offscreen] *::before,
+[data-offscreen] *::after {
+  animation-play-state: paused !important;
+}

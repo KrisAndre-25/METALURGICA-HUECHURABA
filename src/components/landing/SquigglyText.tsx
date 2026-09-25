@@ -1,4 +1,5 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { useInViewport } from '../../hooks/useInViewport';
 import type { ReactNode } from 'react';
 import { cn } from '../ui/cn';
 
@@ -22,18 +23,22 @@ export function SquigglyText({ children, className, stepDuration = 70, scale = 5
   const rawId = useId();
   const filterId = `squiggly-${rawId.replace(/[^a-zA-Z0-9]/g, '')}`;
   const [baseFrequency, setBaseFrequency] = useState(FREQUENCIES[0]);
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInViewport(ref);
 
+  // El filtro se re-renderiza cada `stepDuration` ms: fuera de pantalla no tiene sentido pagar ese costo.
   useEffect(() => {
+    if (!inView) return;
     let index = 0;
     const interval = setInterval(() => {
       index = (index + 1) % FREQUENCIES.length;
       setBaseFrequency(FREQUENCIES[index]);
     }, stepDuration);
     return () => clearInterval(interval);
-  }, [stepDuration]);
+  }, [stepDuration, inView]);
 
   return (
-    <span className={cn('relative inline-block', className)}>
+    <span ref={ref} className={cn('relative inline-block', className)}>
       <svg className="pointer-events-none absolute h-0 w-0" aria-hidden="true">
         <defs>
           <filter id={filterId}>

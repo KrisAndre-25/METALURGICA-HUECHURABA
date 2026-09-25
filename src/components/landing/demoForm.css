@@ -1,0 +1,140 @@
+/*
+ * Formulario de demo — adaptado de Uiverse (tarjeta con esquina cortada y
+ * borde de acento) a la paleta DMAIX: fondo Navy y acento Cian en lugar del naranja.
+ */
+.demo-form {
+  --df-accent: #06b6d4;
+  --df-bg: #0f172a;
+  --df-input: #13203a;
+  --df-textarea: #172a47;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  background-color: var(--df-bg);
+  padding: 30px;
+  border-left: 5px solid var(--df-accent);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  box-shadow: 0 0 40px rgba(6, 182, 212, 0.08);
+}
+
+.demo-form .df-heading {
+  display: block;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.demo-form .df-subtitle {
+  margin: 8px 0 22px;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.demo-form .df-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .demo-form .df-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.demo-form .df-input,
+.demo-form .df-textarea {
+  display: block;
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 11px 12px;
+  margin-bottom: 18px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-left: 1px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+.demo-form .df-input {
+  color: #cbd5e1;
+  background-color: var(--df-input);
+}
+
+.demo-form .df-textarea {
+  color: #67e8f9;
+  background-color: var(--df-textarea);
+  resize: none;
+  min-height: 110px;
+  max-height: 150px;
+}
+
+.demo-form .df-input::placeholder,
+.demo-form .df-textarea::placeholder {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.demo-form .df-input:focus,
+.demo-form .df-textarea:focus {
+  border-left: 5px solid var(--df-accent);
+}
+
+.demo-form .df-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.demo-form .df-send {
+  flex-basis: 70%;
+  background: var(--df-accent);
+  padding: 11px;
+  color: var(--df-bg);
+  text-align: center;
+  font-weight: 800;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.demo-form .df-send:hover,
+.demo-form .df-send:focus-visible {
+  outline: none;
+  background: transparent;
+  border: 1px solid var(--df-accent);
+  color: var(--df-accent);
+}
+
+.demo-form .df-reset-wrap {
+  filter: drop-shadow(1px 1px 0 var(--df-accent));
+  flex-basis: 30%;
+}
+
+.demo-form .df-reset {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  padding: 11px;
+  color: var(--df-accent);
+  font-weight: 800;
+  border: none;
+  background: var(--df-bg);
+  cursor: pointer;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+  transition: all 0.2s ease-in-out;
+}
+
+.demo-form .df-reset:hover,
+.demo-form .df-reset:focus-visible {
+  outline: none;
+  background: var(--df-accent);
+  color: var(--df-bg);
+}
+
+@media (max-width: 480px) {
+  .demo-form {
+    padding: 22px 18px;
+  }
+}
